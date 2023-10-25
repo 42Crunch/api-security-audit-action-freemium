@@ -1,0 +1,17 @@
+# action.yml
+name: "42Crunch REST API Static Security Testing"
+description: "The REST API Static Security Testing action adds an automatic static application security testing (SAST) to your workflows"
+inputs:
+  sarif-report:
+    description: "Writes SARIF report to a specified file"
+    required: false
+    default: ""
+  audit-timeout:
+    description: "Set the maximum timeout (in seconds) for the audit report. Fail if the result isn't ready within that interval."
+    required: false
+branding:
+  icon: "eye"
+  color: "purple"
+runs:
+  using: "docker"
+  image: "Dockerfile"

@@ -1,0 +1,18 @@
+# The audit score is split in two categories, security and data validation. The maximum score
+# for security is 30 points and 70 points for data validation. Together, they form
+# the overall audit score, maximum 100 points.
+#
+# With most plugins, you can set the minimum audit score that API definitions must reach
+# when you add the task to your CI/CD pipeline.
+
+# You can use the Security and Data validation categories to impose
+# additional restrictions on the audited APIs. Just specify a minimum score for one or both of them
+# in the 'fail_on' section, as below.
+
+audit:
+  branches:
+    main:
+      fail_on:
+        score:
+          data: 70
+          security: 30

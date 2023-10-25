@@ -1,0 +1,44 @@
+name: Create new Docker Image for Stable Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+          description: 'Docker image version (e.g. v1.0.0)'
+          required: true
+          default: 'v1.0.0'
+
+env:
+  DOCKER_HUB_USER: "dev42crunch"
+  DOCKER_IMAGE_NAME: "github-api-security-audit-base-image"
+  DOCKER_HUB_TOKEN: "${{ secrets.DOCKER_HUB_DEPLOY }}"
+
+concurrency:
+  group: 'dashboard-builder-stable'
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout GitHub Action
+        uses: actions/checkout@main
+
+      - name: Login Docker Registry
+        run: |
+          docker login -u ${{ env.DOCKER_HUB_USER }} -p ${{ secrets.DOCKER_HUB_DEPLOY }}
+
+      - name: Build docker image
+        run: |
+          docker build -f Dockerfile.build -t ${{ env.DOCKER_IMAGE_NAME }} . 
+
+      - name: Tag Docker Image
+        run: |
+          docker tag ${{ env.DOCKER_IMAGE_NAME }} ${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.inputs.version }}
+
+      - name: Push Docker Image for Dashboard
+        run: |
+          docker push ${{ env.DOCKER_IMAGE_NAME }} ${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.inputs.version }}
+
