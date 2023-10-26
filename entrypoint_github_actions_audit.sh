@@ -144,12 +144,13 @@ echo "2 - $INPUT_GITHUB_TOKEN"
 echo "3 - $GITHUB_TOKEN"
 echo "4 - $USER_TOKEN"
 
-# If variable is set then run discovery run
+# If the user has not specified a file to analyze
 if [ -n "${INPUT_OPENAPI_FILE}" ]; then
-  echo "[*] Running for file ${INPUT_OPENAPI_FILE}"
-  discovery_run
-else
-  # If the user has not specified a file to analyze
   echo "[*] Starting discovery run"
+  discovery_run
+
+# If variable is set then run discovery run
+else
+  echo "[*] Running for file ${INPUT_OPENAPI_FILE}"
   discovery_run
 fi
