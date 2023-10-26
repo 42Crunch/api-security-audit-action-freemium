@@ -44,9 +44,7 @@ USER_TOKEN=${INPUT_GITHUB-TOKEN:-}
 USER_UPLOAD_TO_SCANNING_CODE=${INPUT_UPLOAD-RESULTS:-"true"}
 EXECUTION_REPORT_NAME=${EXECUTION_REPORTNAME:-"execution_report.json"}
 
-pwd
-ls
-set
+echo "$USER_TOKEN"
 
 discovery_run() {
   #
