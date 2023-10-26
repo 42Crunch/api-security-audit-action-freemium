@@ -131,6 +131,12 @@ file_oriented_run() {
   fi
 }
 
+#
+# Setup audit configuration
+#
+mkdip -p .42c
+cp /.42c/config.yaml .42c/config.yaml
+
 # If variable is set then run discovery run
 if [ -n "${INPUT_OPENAPI_FILE}" ]; then
   echo "[*] Running for file ${INPUT_OPENAPI_FILE}"
