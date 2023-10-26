@@ -135,7 +135,7 @@ file_oriented_run() {
 # Setup audit configuration
 #
 echo "[*] Setting up audit configuration"
-mkdip -p .42c/
+mkdir -p .42c/
 cp /42c-audit-config.yaml .42c/conf.yaml
 
 # If variable is set then run discovery run
