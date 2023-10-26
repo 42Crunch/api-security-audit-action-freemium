@@ -44,6 +44,9 @@ USER_TOKEN=$ACTIONS_RUNTIME_TOKEN
 USER_UPLOAD_TO_SCANNING_CODE=${INPUT_UPLOAD_RESULTS:-"true"}
 EXECUTION_REPORT_NAME=${EXECUTION_REPORTNAME:-"execution_report.json"}
 
+pwd
+ls
+
 discovery_run() {
   #
   # This function runs trying to discover the OpenAPI files
