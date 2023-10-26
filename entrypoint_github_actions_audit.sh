@@ -139,9 +139,10 @@ cp /42c-audit-config.yaml .42c/conf.yaml
 
 set
 
-echo "$INPUT_GITHUB-TOKEN"
-echo "$INPUT_GITHUB_TOKEN"
-echo "$GITHUB_TOKEN"
+echo "1 - $INPUT_GITHUB-TOKEN"
+echo "2 - $INPUT_GITHUB_TOKEN"
+echo "3 - $GITHUB_TOKEN"
+echo "4 - $USER_TOKEN"
 
 # If variable is set then run discovery run
 if [ -n "${INPUT_OPENAPI_FILE}" ]; then
