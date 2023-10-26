@@ -44,13 +44,6 @@ USER_TOKEN=$ACTIONS_RUNTIME_TOKEN
 USER_UPLOAD_TO_SCANNING_CODE=${INPUT_UPLOAD_RESULTS:-"true"}
 EXECUTION_REPORT_NAME=${EXECUTION_REPORTNAME:-"execution_report.json"}
 
-
-echo "#####"
-echo "$USER_TOKEN"
-echo "$USER_UPLOAD_TO_SCANNING_CODE"
-echo "$EXECUTION_REPORT_NAME"
-echo "#####"
-
 discovery_run() {
   #
   # This function runs trying to discover the OpenAPI files
@@ -135,8 +128,10 @@ file_oriented_run() {
 
 # If variable is set then run discovery run
 if [ -n "${INPUT_OPENAPI_FILE}" ]; then
+  echo "[*] Running for file ${INPUT_OPENAPI_FILE}"
   discovery_run
 else
   # If the user has not specified a file to analyze
+  echo "[*] Starting discovery run"
   discovery_run
 fi

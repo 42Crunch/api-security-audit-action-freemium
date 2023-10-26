@@ -5,4 +5,5 @@ COPY ./entrypoint_github_actions_audit_without_binaries.sh /entrypoint-github-ac
 RUN chmod +x /entrypoint-github-actions-audit
 
 #ENTRYPOINT ["/entrypoint-github-actions-audit-without-binaries"]
+WORKDIR /github/workspace
 ENTRYPOINT ["/entrypoint-github-actions-audit"]
