@@ -45,6 +45,8 @@ USER_TOKEN=${INPUT_GITHUB_TOKEN:-""}
 USER_UPLOAD_TO_SCANNING_CODE=${INPUT_UPLOAD_RESULTS:-"true"}
 EXECUTION_REPORT_NAME=${EXECUTION_REPORT_NAME:-"execution_report.json"}
 
+set
+
 discovery_run() {
   #
   # This function runs trying to discover the OpenAPI files
