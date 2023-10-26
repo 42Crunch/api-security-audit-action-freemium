@@ -41,8 +41,8 @@ if [ ! -f "$AST_BINARY" ]; then
 fi
 
 LOG_LEVEL=${LOG_LEVEL:-"info"}
-USER_TOKEN=${INPUT_GITHUB_TOKEN:-""}
-USER_UPLOAD_TO_SCANNING_CODE=${INPUT_UPLOAD_RESULTS:-"true"}
+USER_TOKEN=${INPUT_GITHUB-TOKEN:-""}
+USER_UPLOAD_TO_SCANNING_CODE=${INPUT_UPLOAD-RESULTS:-"true"}
 EXECUTION_REPORT_NAME=${EXECUTION_REPORT_NAME:-"execution_report.json"}
 
 set
@@ -118,7 +118,9 @@ file_oriented_run() {
   if [ $? -eq 0 ]; then
 
     # Scanning and generating sarif success. Now we need to upload the report to scanning code if the is set
+    echo "Before"
     if [ -n "$USER_UPLOAD_TO_SCANNING_CODE" ]; then
+      echo "After"
 
       # Upload report to GitHub scanning code
       echo "    > Uploading $AUDIT_REPORT.sarif to GitHub scanning code"
