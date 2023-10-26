@@ -135,8 +135,8 @@ file_oriented_run() {
 # Setup audit configuration
 #
 echo "[*] Setting up audit configuration"
-mkdip -p /github/workspace/.42c/
-cp /42c-audit-config.yaml /github/workspace/.42c/conf.yaml
+mkdip -p .42c/
+cp /42c-audit-config.yaml .42c/conf.yaml
 
 # If variable is set then run discovery run
 if [ -n "${INPUT_OPENAPI_FILE}" ]; then
