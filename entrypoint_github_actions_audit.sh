@@ -46,6 +46,7 @@ EXECUTION_REPORT_NAME=${EXECUTION_REPORTNAME:-"execution_report.json"}
 
 pwd
 ls
+set
 
 discovery_run() {
   #
@@ -76,8 +77,8 @@ discovery_run() {
 
     # Run 42Crunch Audit
     echo "    > Running 42Crunch Audit"
-#    $AST_BINARY audit run --enrich=false --org "$GITHUB_REPOSITORY" --user "$GITHUB_REPOSITORY_OWNER" --output-format json -o "$AUDIT_REPORT" "$FILE" > /dev/null 2>&1
-    $AST_BINARY audit run --enrich=false --org "$GITHUB_REPOSITORY" --user "$GITHUB_REPOSITORY_OWNER" --output-format json -o "$AUDIT_REPORT" "$FILE"
+    $AST_BINARY audit run --enrich=false --org "$GITHUB_REPOSITORY" --user "$GITHUB_REPOSITORY_OWNER" --output-format json -o "$AUDIT_REPORT" "$FILE" > /dev/null 2>&1
+#    $AST_BINARY audit run --enrich=false --org "$GITHUB_REPOSITORY" --user "$GITHUB_REPOSITORY_OWNER" --output-format json -o "$AUDIT_REPORT" "$FILE"
 
     # Convert o SARIF format
     echo "    > Converting $AUDIT_REPORT to SARIF format"
