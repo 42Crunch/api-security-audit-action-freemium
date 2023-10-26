@@ -42,9 +42,6 @@ fi
 
 USER_TOKEN=${INPUT_GITHUB_TOKEN:-}
 USER_UPLOAD_TO_SCANNING_CODE=${INPUT_UPLOAD-RESULTS:-"true"}
-EXECUTION_REPORT_NAME=${EXECUTION_REPORTNAME:-"execution_report.json"}
-
-echo "$USER_TOKEN"
 
 discovery_run() {
   #
@@ -90,6 +87,7 @@ discovery_run() {
 
         # Upload report to GitHub scanning code
         echo "    > Uploading $AUDIT_REPORT.sarif to GitHub scanning code"
+        echo $UPLOAD_SARIF_BINARY --github-token "$USER_TOKEN" --github-repository "$GITHUB_REPOSITORY" --github-sha "$GITHUB_SHA" --ref "$GITHUB_REF" "$AUDIT_REPORT.sarif"
         $UPLOAD_SARIF_BINARY --github-token "$USER_TOKEN" --github-repository "$GITHUB_REPOSITORY" --github-sha "$GITHUB_SHA" --ref "$GITHUB_REF" "$AUDIT_REPORT.sarif"
       fi
     fi
@@ -138,11 +136,6 @@ mkdir -p .42c/
 cp /42c-audit-config.yaml .42c/conf.yaml
 
 set
-
-echo "1 - $INPUT_GITHUB-TOKEN"
-echo "2 - $INPUT_GITHUB_TOKEN"
-echo "3 - $GITHUB_TOKEN"
-echo "4 - $USER_TOKEN"
 
 # If the user has not specified a file to analyze
 if [ -n "${INPUT_OPENAPI_FILE}" ]; then
