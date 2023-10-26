@@ -95,8 +95,8 @@ jobs:
       - name: 42crunch-static-api-testing
         uses: 42crunch/api-security-audit-action-freemium@main
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          upload_results: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          upload-results: false
 ```
 ## Inputs
 
