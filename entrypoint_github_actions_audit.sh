@@ -40,12 +40,16 @@ if [ ! -f "$AST_BINARY" ]; then
   exit 1
 fi
 
-LOG_LEVEL=${LOG_LEVEL:-"info"}
-USER_TOKEN=${INPUT_GITHUB-TOKEN:-""}
-USER_UPLOAD_TO_SCANNING_CODE=${INPUT_UPLOAD-RESULTS:-"true"}
-EXECUTION_REPORT_NAME=${EXECUTION_REPORT_NAME:-"execution_report.json"}
+USER_TOKEN=$ACTIONS_RUNTIME_TOKEN
+USER_UPLOAD_TO_SCANNING_CODE=${INPUT_UPLOAD_RESULTS:-"true"}
+EXECUTION_REPORT_NAME=${EXECUTION_REPORTNAME:-"execution_report.json"}
 
-set
+
+echo "#####"
+echo "$USER_TOKEN"
+echo "$USER_UPLOAD_TO_SCANNING_CODE"
+echo "$EXECUTION_REPORT_NAME"
+echo "#####"
 
 discovery_run() {
   #
@@ -128,3 +132,11 @@ file_oriented_run() {
     fi
   fi
 }
+
+# If variable is set then run discovery run
+if [ -n "${INPUT_OPENAPI_FILE}" ]; then
+  discovery_run
+else
+  # If the user has not specified a file to analyze
+  discovery_run
+fi
