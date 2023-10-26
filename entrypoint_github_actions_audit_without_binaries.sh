@@ -18,7 +18,7 @@ UPLOAD_TO_SCANNING_CODE=${UPLOAD_TO_SCANNING_CODE:-"false"}
 #
 # Find .json and .yaml files in the repository
 #
-OPENAPI_FILE="openapi.yaml"
+OPENAPI_FILE="openapi.json"
 REPORT_FILE="audit-report.json.report"
 
  # Convert o SARIF format
