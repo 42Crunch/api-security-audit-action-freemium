@@ -16,16 +16,10 @@ EXECUTION_REPORT_NAME=${EXECUTION_REPORT_NAME:-"execution_report.json"}
 UPLOAD_TO_SCANNING_CODE=${UPLOAD_TO_SCANNING_CODE:-"false"}
 USER_TOKEN=${INPUT_GITHUB_TOKEN:-""}
 
-echo "###"
-set
-echo "###"
-
-
 #
 # Find .json and .yaml files in the repository
 #
-OPENAPI_FILE="openapi.json"
-REPORT_FILE="audit-report.json.report"
+OPENAPI_FILE=${INPUT_OPENAPI_FILE:-""}
 
  # Convert o SARIF format
 echo "    > Converting $REPORT_FILE to SARIF format"
