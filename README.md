@@ -44,7 +44,7 @@ jobs:
       - name: 42crunch-static-api-testing
         uses: 42crunch/api-security-audit-action-freemium@main
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.USER_GITHUB_TOKEN }}
 ```
 
 ### Specify the API files to be checked
@@ -69,7 +69,7 @@ jobs:
       - name: 42crunch-static-api-testing
         uses: 42crunch/api-security-audit-action-freemium@main
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.USER_GITHUB_TOKEN }}
           openapi_file: 'openapi.json'
 ```
 
@@ -95,7 +95,7 @@ jobs:
       - name: 42crunch-static-api-testing
         uses: 42crunch/api-security-audit-action-freemium@main
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.USER_GITHUB_TOKEN }}
           upload-results: false
 ```
 ## Inputs
@@ -104,6 +104,8 @@ Inputs for the action are defined in the `with` section of the action step. The 
 
 | Name             | Description                                                     | Required |     | Default |
 |------------------|-----------------------------------------------------------------|----------|:----|---------|
-| `github_token`   | GitHub token used to create the Security / Code Scanning Alerts | Yes      |     |         |
-| `openapi_file`   | Name of the OpenAPI file to be checked                          | No       |     |         |
-| `upload_results` | Upload the results to GitHub Security / Code Scanning Alerts    | No       |     | true    |
+| `github-token`   | GitHub token used to create the Security / Code Scanning Alerts | Yes      |     |         |
+| `openapi-file`   | Name of the OpenAPI file to be checked                          | No       |     |         |
+| `upload-results` | Upload the results to GitHub Security / Code Scanning Alerts    | No       |     | true    |
+
+> CAUTION: default secret `GITHUB_TOKEN` is not valid. You need a custom token with
