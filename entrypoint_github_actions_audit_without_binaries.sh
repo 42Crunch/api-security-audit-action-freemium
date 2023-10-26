@@ -14,6 +14,12 @@ fi
 LOG_LEVEL=${LOG_LEVEL:-"info"}
 EXECUTION_REPORT_NAME=${EXECUTION_REPORT_NAME:-"execution_report.json"}
 UPLOAD_TO_SCANNING_CODE=${UPLOAD_TO_SCANNING_CODE:-"false"}
+USER_TOKEN=${INPUT_GITHUB_TOKEN:-""}
+
+echo "###"
+set
+echo "###"
+
 
 #
 # Find .json and .yaml files in the repository
@@ -33,6 +39,6 @@ if [ $? -eq 0 ]; then
 
     # Upload report to GitHub scanning code
     echo "    > Uploading $REPORT_FILE.sarif to GitHub scanning code"
-    $UPLOAD_SARIF_BINARY --github-token "$GITHUB_TOKEN" --github-repository "$GITHUB_REPOSITORY" --github-sha "$GITHUB_SHA" --ref "$GITHUB_REF" "$REPORT_FILE.sarif"
+    $UPLOAD_SARIF_BINARY --github-token "$USER_TOKEN" --github-repository "$GITHUB_REPOSITORY" --github-sha "$GITHUB_SHA" --ref "$GITHUB_REF" "$REPORT_FILE.sarif"
   fi
 fi
