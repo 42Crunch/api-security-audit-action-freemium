@@ -137,6 +137,8 @@ echo "[*] Setting up audit configuration"
 mkdir -p .42c/
 cp /42c-audit-config.yaml .42c/conf.yaml
 
+set
+
 # If variable is set then run discovery run
 if [ -n "${INPUT_OPENAPI_FILE}" ]; then
   echo "[*] Running for file ${INPUT_OPENAPI_FILE}"
