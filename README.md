@@ -73,11 +73,37 @@ jobs:
           openapi_file: 'openapi.json'
 ```
 
+### Disable upload to GitHub Code Scanning Alerts
+
+```yaml
+name: 42Crunch API Security Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  run_42c_audit:
+    name: 42Crunch API Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+
+      - name: 42crunch-static-api-testing
+        uses: 42crunch/api-security-audit-action-freemium@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          upload_results: false
+```
 ## Inputs
 
 Inputs for the action are defined in the `with` section of the action step. The following inputs are supported:
 
-| Name           | Description                                                       | Required  |     | Default |
-|----------------|-------------------------------------------------------------------|-----------|:----|---------|
-| `github_token` | GitHub token used to create the Security / Code Scanning Alerts   | Yes       |     |         |
-| `openapi_file` | Name of the OpenAPI file to be checked                            | No        |     |         |
+| Name             | Description                                                     | Required |     | Default |
+|------------------|-----------------------------------------------------------------|----------|:----|---------|
+| `github_token`   | GitHub token used to create the Security / Code Scanning Alerts | Yes      |     |         |
+| `openapi_file`   | Name of the OpenAPI file to be checked                          | No       |     |         |
+| `upload_results` | Upload the results to GitHub Security / Code Scanning Alerts    | No       |     | true    |
