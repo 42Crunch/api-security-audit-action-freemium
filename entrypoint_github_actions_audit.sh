@@ -58,7 +58,7 @@ discovery_run() {
 
   for FILE in $JSON_FILES $YAML_FILES; do
 
-    FULL_PATH=$(pwd)/$FILE
+    FULL_PATH=${FILE:2}
 
     #
     # Check if file is a valid OpenAPI file
