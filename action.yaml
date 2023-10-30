@@ -34,4 +34,6 @@ branding:
 runs:
   using: "docker"
   image: "Dockerfile"
+  env:
+    AUTO_GITHUB_TOKEN: ${{ inputs.github-token }}
 
