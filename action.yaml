@@ -25,6 +25,8 @@ inputs:
     description: "GitHub Token"
     required: true
     default: ${{ github.token }}
+  token:
+    default: ${{ github.token }}
 
 branding:
   icon: "eye"
@@ -32,3 +34,4 @@ branding:
 runs:
   using: "docker"
   image: "Dockerfile"
+
