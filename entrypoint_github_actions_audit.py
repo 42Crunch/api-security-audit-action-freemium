@@ -2,15 +2,13 @@
 
 import os
 import sys
-import gzip
 import json
-import base64
 import platform
 import subprocess
-import urllib.request
 
 from glob import glob
 from dataclasses import dataclass
+from typing import Tuple
 
 AUDIT_CONFIG = """
 audit:
@@ -20,6 +18,73 @@ audit:
         score:
           data: 70
           security: 30
+"""
+
+CLEAN_SARIF_REPORT = """
+{
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "templateanalyzer",
+          "organization": "Microsoft",
+          "fullName": "Template Analyzer",
+          "version": "0.5.2",
+          "informationUri": "https://github.com/Azure/template-analyzer",
+          "properties": {
+            "RawName": "templateanalyzer"
+          }
+        }
+      },
+      "invocations": [
+        {
+          "startTimeUtc": "2023-10-19T21:57:06.696Z",
+          "endTimeUtc": "2023-10-19T21:57:11.166Z",
+          "toolExecutionNotifications": [
+            {
+              "message": {
+                "text": "Discovered 1 template-parameter pairs to analyze"
+              },
+              "level": "note"
+            }
+          ],
+          "executionSuccessful": true
+        }
+      ],
+      "versionControlProvenance": [
+        {
+          "repositoryUri": "https://dev.azure.com/AnnotationsRuntimeE2E/AnnotationsRuntimeE2E/_git/AnnotationsRuntimeE2E-KoreaCentral",
+          "revisionId": "7462c01d45e26176afe4e6543fda84dd0881ea20",
+          "branch": "HEAD",
+          "properties": {
+            "RepositoryRoot": "D:\\a\\1\\s"
+          }
+        }
+      ],
+      "originalUriBaseIds": {
+        "ROOTPATH": {
+          "uri": "file:///D:/a/1/s"
+        }
+      },
+      "results": [],
+      "automationDetails": {
+        "id": "AnnotationsRuntimeE2E-KoreaCentral"
+      },
+      "columnKind": "utf16CodeUnits",
+      "policies": [
+        {
+          "name": "AzureDevOps",
+          "version": "1.0.0"
+        }
+      ],
+      "properties": {
+        "toolInfoId": "templateanalyzer>>0>>202310192157"
+      }
+    }
+  ]
+}
 """
 
 
@@ -128,6 +193,26 @@ def validate_openapi(openapi_file: str):
             raise InvalidOpenAPIFile(f"File '{openapi_file}' is not a valid OpenAPI 3.0 specification")
 
 
+def is_security_issues_found(sarif_report: str) -> Tuple[bool, int]:
+    """
+    Check if security issues were found in the SARIF report.
+
+    If the SARIF report has no results, it means that no security issues were found. So, we return False. Otherwise, True
+    """
+    with open(sarif_report, "r") as f:
+        data = json.load(f)
+
+        try:
+            issues_found = len(data["runs"][0]["results"])
+
+            if issues_found > 0:
+                return True, issues_found
+            else:
+                return False, -1
+        except (KeyError, IndexError):
+            return False, -1
+
+
 def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries: Binaries):
     json_files = glob('**/*.json', recursive=True)
     yaml_files = glob('**/*.yaml', recursive=True) + glob('**/*.yml', recursive=True)
@@ -157,12 +242,10 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "--org", running_config.github_repository,
             "--user", running_config.github_repository_owner,
             "--output-format", "json",
+            "-v", running_config.log_level,
             "-o", audit_report,
             full_path
         ]
-
-        print("Command:", flush=True)
-        print(" ".join(audit_command), flush=True)
 
         print(f"    > Running audit on {full_path}")
         audit_command_result = subprocess.run(audit_command)
@@ -204,39 +287,6 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         if running_config.upload_to_code_scanning:
             print(f"    > Uploading SARIF report to GitHub code scanning")
 
-            # # Convert the SARIF file to base64 after gzip compression
-            # try:
-            #     with open(sarif_report, 'rb') as f:
-            #         zipped_sarif = base64.b64encode(gzip.compress(f.read())).decode()
-            # except FileNotFoundError:
-            #     print(f"[!] File {sarif_report} not found")
-            #     exit(1)
-            #
-            # # Construct the request
-            # url = f"https://api.github.com/repos/{running_config.github_repository}/code-scanning/sarifs"
-            # print("Repo uRL:", url, flush=True)
-            # headers = {
-            #     "Authorization": f"Bearer {running_config.github_token}",
-            #     "Accept": "application/vnd.github+json",
-            #     "X-GitHub-Api-Version": "2022-11-28"
-            # }
-            # data = {
-            #     "commit_sha": running_config.github_sha,
-            #     "ref": running_config.github_ref,
-            #     "sarif": zipped_sarif,
-            #     "tool_name": "42Crunch REST API Static Security Testing",
-            #     "checkout_uri": f"file://{os.getcwd()}"
-            # }
-            # req = urllib.request.Request(url, headers=headers, data=json.dumps(data).encode())
-            #
-            # # Send the request
-            # try:
-            #     with urllib.request.urlopen(req) as response:
-            #         print(response.read().decode(), flush=True)
-            # except Exception as e:
-            #     print(f"[!] HTTP Error {e}", flush=True)
-            #     exit(1)
-
             upload_to_code_scanning_command = [
                 binaries.upload_to_github_code_scanning,
                 '--github-token', running_config.github_token,
@@ -249,9 +299,30 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             upload_to_code_scanning_results = subprocess.run(upload_to_code_scanning_command, capture_output=True)
 
             if upload_to_code_scanning_results.returncode != 0:
-                print(f"[!] Unable to upload SARIF report to GitHub code scanning")
-                print(upload_to_code_scanning_results.stdout)
+                print(f"[!] Unable to upload SARIF report to GitHub code scanning: {upload_to_code_scanning_results.stdout.decode()}")
                 continue
+
+        #
+        # Check if security issues were found
+        #
+
+        ## If enforce_sqgl is set to true, We'll success although security issues were found
+        if running_config.enforce_sqgl:
+            continue
+
+        else:
+
+            ## If enforce_sqgl is set to false, we'll fail if security issues were found
+            found, issues = is_security_issues_found(sarif_report)
+            if found:
+                print(f"[!] Security issues found in '{full_path}'. '{issues}' issues found")
+                sys.exit(1)
+
+        #
+        # Export as PDF
+        #
+        if running_config.export_as_pdf:
+            print(f"    > Exporting {sarif_report} to PDF")
 
 
 def setup_audit_configuration(file_path: str = '.42c/conf.yaml'):
@@ -311,7 +382,6 @@ def get_running_configuration() -> RunningConfiguration:
 
 
 def main():
-
     current_dir = os.getcwd()
     binaries = get_binaries_paths()
     running_config = get_running_configuration()
