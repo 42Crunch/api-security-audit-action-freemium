@@ -1,0 +1,55 @@
+# This workflow locates REST API file contracts
+# (Swagger or OpenAPI format, v2 and v3, JSON and YAML)
+# and runs 200+ security checks on them using 42Crunch Security Audit technology.
+#
+# Documentation is located here: https://docs.42crunch.com/latest/content/tasks/integrate_github_actions.htm
+#
+# To use this workflow, you will need to complete the following setup steps.
+#
+# 1. Create a free 42Crunch account at https://platform.42crunch.com/register
+#
+# 2. Follow steps at https://docs.42crunch.com/latest/content/tasks/integrate_github_actions.htm
+#    to create an API Token on the 42Crunch platform
+#
+# 3. Add a secret in GitHub as explained in https://docs.42crunch.com/latest/content/tasks/integrate_github_actions.htm,
+#    store the 42Crunch API Token in that secret, and supply the secret's name as api-token parameter in this workflow
+#
+# If you have any questions or need help contact https://support.42crunch.com
+
+name: "pr-workflow"
+
+# follow standard Code Scanning triggers
+on:
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ main ]
+
+jobs:
+  run_42c_audit:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for results upload to Github Code Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+      - name: get PR number
+        id: getprnumber
+        run: |
+          pr_id=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          echo "PR_ID=$pr_id" >> $GITHUB_OUTPUT
+      - name: 42crunch-static-api-testing
+        uses: 42crunch/api-security-audit-action-freemium@main
+        with:
+          # Upload results to GitHub code scanning
+          upload-to-code-scanning: true
+          log-level: info
+          sarif-report: 42Crunch_AuditReport_${{ github.run_id }}.SARIF
+          enforce-sqg: true
+      - name: save-audit-report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: 42Crunch_AuditReport_${{ github.run_id }}
+          path: 42Crunch_AuditReport_${{ github.run_id }}.SARIF
+          if-no-files-found: error
