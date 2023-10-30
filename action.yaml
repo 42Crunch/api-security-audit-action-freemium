@@ -22,6 +22,7 @@ inputs:
     required: false
     default: "false"
   token:
+    description: "Personal Access Token"
     default: ${{ github.token }}
 
 branding:

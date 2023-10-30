@@ -204,55 +204,55 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         if running_config.upload_to_code_scanning:
             print(f"    > Uploading SARIF report to GitHub code scanning")
 
-            # Convert the SARIF file to base64 after gzip compression
-            try:
-                with open(sarif_report, 'rb') as f:
-                    zipped_sarif = base64.b64encode(gzip.compress(f.read())).decode()
-            except FileNotFoundError:
-                print(f"[!] File {sarif_report} not found")
-                exit(1)
-
-            # Construct the request
-            url = f"https://api.github.com/repos/{running_config.github_repository}/code-scanning/sarifs"
-            print("Repo uRL:", url, flush=True)
-            headers = {
-                "Authorization": f"Bearer {running_config.github_token}",
-                "Accept": "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28"
-            }
-            data = {
-                "commit_sha": running_config.github_sha,
-                "ref": running_config.github_ref,
-                "sarif": zipped_sarif,
-                "tool_name": "42Crunch REST API Static Security Testing",
-                "checkout_uri": f"file://{os.getcwd()}"
-            }
-            req = urllib.request.Request(url, headers=headers, data=json.dumps(data).encode())
-
-            # Send the request
-            try:
-                with urllib.request.urlopen(req) as response:
-                    print(response.read().decode(), flush=True)
-            except Exception as e:
-                print(f"[!] HTTP Error {e}", flush=True)
-                exit(1)
-
-            # upload_to_code_scanning_command = [
-            #     binaries.upload_to_github_code_scanning,
-            #     '--github-token', running_config.github_token,
-            #     '--github-repository', running_config.github_repository,
-            #     '--github-sha', running_config.github_sha,
-            #     '--ref', running_config.github_ref,
-            #     sarif_report
-            # ]
+            # # Convert the SARIF file to base64 after gzip compression
+            # try:
+            #     with open(sarif_report, 'rb') as f:
+            #         zipped_sarif = base64.b64encode(gzip.compress(f.read())).decode()
+            # except FileNotFoundError:
+            #     print(f"[!] File {sarif_report} not found")
+            #     exit(1)
             #
-            # upload_to_code_scanning_results = subprocess.run(upload_to_code_scanning_command)
+            # # Construct the request
+            # url = f"https://api.github.com/repos/{running_config.github_repository}/code-scanning/sarifs"
+            # print("Repo uRL:", url, flush=True)
+            # headers = {
+            #     "Authorization": f"Bearer {running_config.github_token}",
+            #     "Accept": "application/vnd.github+json",
+            #     "X-GitHub-Api-Version": "2022-11-28"
+            # }
+            # data = {
+            #     "commit_sha": running_config.github_sha,
+            #     "ref": running_config.github_ref,
+            #     "sarif": zipped_sarif,
+            #     "tool_name": "42Crunch REST API Static Security Testing",
+            #     "checkout_uri": f"file://{os.getcwd()}"
+            # }
+            # req = urllib.request.Request(url, headers=headers, data=json.dumps(data).encode())
             #
-            # if upload_to_code_scanning_results.returncode != 0:
-            #     print(f"[!] Unable to upload SARIF report to GitHub code scanning")
-            #     print(upload_to_code_scanning_results.stderr)
-            #     print(upload_to_code_scanning_results.stdout)
-            #     continue
+            # # Send the request
+            # try:
+            #     with urllib.request.urlopen(req) as response:
+            #         print(response.read().decode(), flush=True)
+            # except Exception as e:
+            #     print(f"[!] HTTP Error {e}", flush=True)
+            #     exit(1)
+
+            upload_to_code_scanning_command = [
+                binaries.upload_to_github_code_scanning,
+                '--github-token', running_config.github_token,
+                '--github-repository', running_config.github_repository,
+                '--github-sha', running_config.github_sha,
+                '--ref', running_config.github_ref,
+                sarif_report
+            ]
+
+            upload_to_code_scanning_results = subprocess.run(upload_to_code_scanning_command)
+
+            if upload_to_code_scanning_results.returncode != 0:
+                print(f"[!] Unable to upload SARIF report to GitHub code scanning")
+                print(upload_to_code_scanning_results.stderr)
+                print(upload_to_code_scanning_results.stdout)
+                continue
 
 
 def setup_audit_configuration(file_path: str = '.42c/conf.yaml'):
@@ -267,7 +267,6 @@ def setup_audit_configuration(file_path: str = '.42c/conf.yaml'):
 
 def get_running_configuration() -> RunningConfiguration:
     def _to_bool(value: str) -> bool:
-        print("Raw bool value:", value)
         if value is None:
             return False
         elif value.lower() == "true":
@@ -282,10 +281,6 @@ def get_running_configuration() -> RunningConfiguration:
             return None
         else:
             return value
-
-    print("Environment variables:")
-    for k, v in os.environ.items():
-        print(f"    {k}: {v}")
 
     data_enrich = _to_bool(os.getenv("INPUT_DATA-ENRICH", "false"))
     enforce_sqgl = _to_bool(os.getenv("INPUT_ENFORCE-SQGL", "false"))
@@ -318,15 +313,9 @@ def get_running_configuration() -> RunningConfiguration:
 
 def main():
 
-    print("Starting 42Crunch API Security Audit")
-    print("===================================")
-
     current_dir = os.getcwd()
     binaries = get_binaries_paths()
     running_config = get_running_configuration()
-
-    print("Environment variables:")
-    print(running_config)
 
     scan_audit_config = os.path.join(current_dir, '.42c/conf.yaml')
 
