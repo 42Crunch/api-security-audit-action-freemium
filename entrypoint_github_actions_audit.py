@@ -250,6 +250,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
 
             if upload_to_code_scanning_results.returncode != 0:
                 print(f"[!] Unable to upload SARIF report to GitHub code scanning")
+                print(upload_to_code_scanning_results.stdout)
                 continue
 
 
