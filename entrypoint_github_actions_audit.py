@@ -232,6 +232,7 @@ def setup_audit_configuration(file_path: str = '.42c/conf.yaml'):
 
 def get_running_configuration() -> RunningConfiguration:
     def _to_bool(value: str) -> bool:
+        print("Raw bool value:", value)
         if value is None:
             return False
         elif value.lower() == "true":
