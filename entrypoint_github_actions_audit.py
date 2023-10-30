@@ -47,10 +47,6 @@ class RunningConfiguration:
     github_ref: str = None
     github_sha: str = None
 
-    def __post_init__(self):
-        if self.github_repository:
-            self.github_repository = self.github_repository.split("/")[-1]
-
     def __repr__(self):
         return f"""
 RunningConfiguration:
@@ -154,7 +150,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "audit",
             "run",
             "--enrich=false",
-            "--org", f"{running_config.github_organization}/{running_config.github_repository}",
+            "--org", running_config.github_repository,
             "--user", running_config.github_repository_owner,
             "--output-format", "json",
             "-o", audit_report,
