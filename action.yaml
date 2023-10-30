@@ -21,6 +21,10 @@ inputs:
     description: "Export as PDF"
     required: false
     default: "false"
+  github-token:
+    description: "GitHub Token"
+    required: true
+    default: ${{ github.token }}
 
 branding:
   icon: "eye"
