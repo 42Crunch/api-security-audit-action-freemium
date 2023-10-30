@@ -248,9 +248,11 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         ]
 
         print(f"    > Running audit on {full_path}")
-        audit_command_result = subprocess.run(audit_command)
+        audit_command_result = subprocess.run(audit_command, capture_output=True)
         if audit_command_result.returncode != 0:
             print(f"[!] Unable to run audit on {full_path}")
+            print(f"[!] {audit_command_result.stderr.decode()}")
+            print(f"[!] {audit_command_result.stdout.decode()}")
             continue
 
         # If report doesn't exists, skip
@@ -275,7 +277,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "-o", sarif_report
         ]
 
-        conversion_result = subprocess.run(sarif_converter_command)
+        conversion_result = subprocess.run(sarif_converter_command, capture_output=True)
 
         if conversion_result.returncode != 0:
             print(f"[!] Unable to convert {audit_report} to SARIF format")
@@ -299,8 +301,16 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             upload_to_code_scanning_results = subprocess.run(upload_to_code_scanning_command, capture_output=True)
 
             if upload_to_code_scanning_results.returncode != 0:
-                print(f"[!] Unable to upload SARIF report to GitHub code scanning: {upload_to_code_scanning_results.stdout.decode()}")
-                continue
+                error = upload_to_code_scanning_results.stderr.decode()
+
+                print(f"[!] Unable to upload SARIF report to GitHub code scanning: {error}")
+
+                if "403" in error:
+                    print(f"[!] Please check that the provided token has the 'repo' scope")
+                    exit(1)
+
+                else:
+                    continue
 
         #
         # Check if security issues were found
