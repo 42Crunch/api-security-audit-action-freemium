@@ -221,8 +221,8 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
     json_files = glob('**/*.json', recursive=True)
     yaml_files = glob('**/*.yaml', recursive=True) + glob('**/*.yml', recursive=True)
 
-    for file_path in json_files + yaml_files:
-        full_path = os.path.abspath(os.path.join(base_dir, file_path))
+    for full_path in json_files + yaml_files:
+        # full_path = os.path.abspath(os.path.join(base_dir, file_path))
 
         #
         # Valida OpenAPI file
@@ -364,7 +364,7 @@ def get_running_configuration() -> RunningConfiguration:
         else:
             return False
 
-    def _none_or_empty(value: str) -> str:
+    def _none_or_empty(value: str) -> str | None:
         if value is None:
             return None
         elif value.strip() == "":
