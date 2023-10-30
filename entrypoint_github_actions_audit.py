@@ -153,12 +153,16 @@ def get_binaries_paths() -> Binaries:
             elif platform.system() == "Linux":
                 return "/usr/local/bin/42c-ast-linux-amd64"
             else:
+                print()
                 print("[!] Unable to detect operating system from GitHub action environment variables")
+                print()
                 sys.exit(1)
 
     def _check_binary_exists(ast_binary):
         if not os.path.isfile(ast_binary):
+            print()
             print(f"[!] Unable to find binary at {ast_binary}")
+            print()
             sys.exit(1)
 
     if os.getenv("LOCAL_DEVELOPMENT"):
@@ -303,13 +307,17 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             if upload_to_code_scanning_results.returncode != 0:
                 error = upload_to_code_scanning_results.stdout.decode()
 
-                print(f"[!] Unable to upload SARIF report to GitHub code scanning: {error}")
+                print()
+                print(f"[!] Unable to upload SARIF report to GitHub code scanning:")
 
                 if "403" in error:
-                    print(f"[!] Please check that the provided token has the 'repo' scope")
+                    print(f"[!] Check that the provided GitHub Token has permissions with the repo scope or security_events scope")
+                    print()
                     exit(1)
 
                 else:
+                    print(error)
+                    print()
                     continue
 
         #
@@ -325,7 +333,9 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             ## If enforce_sqgl is set to false, we'll fail if security issues were found
             found, issues = is_security_issues_found(sarif_report)
             if found:
-                print(f"[!] Security issues found in '{full_path}'. '{issues}' issues found")
+                print()
+                print(f"[!] Security issues found in '{full_path}'. {issues} issues found")
+                print()
                 sys.exit(1)
 
         #
