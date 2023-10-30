@@ -47,6 +47,10 @@ class RunningConfiguration:
     github_ref: str = None
     github_sha: str = None
 
+    def __post_init__(self):
+        if self.github_repository:
+            self.github_repository = self.github_repository.split("/")[-1]
+
     def __repr__(self):
         return f"""
 RunningConfiguration:
@@ -157,6 +161,10 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "-o", audit_report,
             full_path
         ]
+
+        # If report doesn't exists, skip
+        if not os.path.isfile(audit_report):
+            continue
 
         print(f"    > Running audit on {full_path}")
         audit_command_result = subprocess.run(audit_command, shell=True)
@@ -270,6 +278,7 @@ def main():
     print(running_config)
 
     scan_audit_config = os.path.join(current_dir, '.42c/conf.yaml')
+    print(os.listdir(current_dir))
 
     # Write audit configuration to temporary file
     setup_audit_configuration(scan_audit_config)
