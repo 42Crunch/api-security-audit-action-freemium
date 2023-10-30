@@ -147,8 +147,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         #
         # Run audit
         #
-        file_name = os.path.splitext(os.path.basename(full_path))[0]
-        audit_report = f"{file_name}.report"
+        audit_report = f"{full_path}.report"
 
         audit_command = [
             binaries.audit,
@@ -172,6 +171,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         if not os.path.isfile(audit_report):
             print(f"[!] Unable to find audit report at {audit_report}")
             print(f"Error: {audit_command_result.stderr}")
+            print(f"Error: {audit_command_result.stdout}")
             continue
 
         #
@@ -182,7 +182,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         if running_config.sarif_report:
             sarif_report = running_config.sarif_report
         else:
-            sarif_report = f"{file_name}.sarif"
+            sarif_report = f"{full_path}.sarif"
 
         sarif_converter_command = [
             binaries.convert_to_sarif,
@@ -280,7 +280,6 @@ def main():
     print(running_config)
 
     scan_audit_config = os.path.join(current_dir, '.42c/conf.yaml')
-    print(os.listdir(current_dir))
 
     # Write audit configuration to temporary file
     setup_audit_configuration(scan_audit_config)
