@@ -240,6 +240,9 @@ def get_running_configuration() -> RunningConfiguration:
         else:
             return False
 
+    print("Environment variables:")
+    print(os.environ, flush=True)
+
     data_enrich = _to_bool(os.getenv("INPUT_DATA_ENRICH", "false"))
     enforce_sqgl = _to_bool(os.getenv("INPUT_ENFORCE_SQGL", "false"))
     upload_to_code_scanning = _to_bool(os.getenv("INPUT_UPLOAD_TO_CODE_SCANNING", "false"))
