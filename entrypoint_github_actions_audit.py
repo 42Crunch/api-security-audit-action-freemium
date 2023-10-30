@@ -214,6 +214,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
 
             # Construct the request
             url = f"https://api.github.com/repos/{running_config.github_repository}/code-scanning/sarifs"
+            print("Repo uRL:", url, flush=True)
             headers = {
                 "Authorization": f"Bearer {running_config.github_token}",
                 "Accept": "application/vnd.github+json",
