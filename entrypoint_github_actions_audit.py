@@ -173,8 +173,6 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         # If report doesn't exists, skip
         if not os.path.isfile(audit_report):
             print(f"[!] Unable to find audit report at {audit_report}")
-            print(f"Error: {audit_command_result.stderr}")
-            print(f"Error: {audit_command_result.stdout}")
             continue
 
         #
@@ -194,7 +192,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "-o", sarif_report
         ]
 
-        conversion_result = subprocess.run(sarif_converter_command, shell=True)
+        conversion_result = subprocess.run(sarif_converter_command)
 
         if conversion_result.returncode != 0:
             print(f"[!] Unable to convert {audit_report} to SARIF format")
@@ -215,7 +213,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
                 sarif_report
             ]
 
-            upload_to_code_scanning_results = subprocess.run(upload_to_code_scanning_command, shell=True)
+            upload_to_code_scanning_results = subprocess.run(upload_to_code_scanning_command)
 
             if upload_to_code_scanning_results.returncode != 0:
                 print(f"[!] Unable to upload SARIF report to GitHub code scanning")
