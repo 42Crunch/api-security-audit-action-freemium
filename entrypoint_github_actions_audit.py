@@ -301,7 +301,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             upload_to_code_scanning_results = subprocess.run(upload_to_code_scanning_command, capture_output=True)
 
             if upload_to_code_scanning_results.returncode != 0:
-                error = upload_to_code_scanning_results.stderr.decode()
+                error = upload_to_code_scanning_results.stdout.decode()
 
                 print(f"[!] Unable to upload SARIF report to GitHub code scanning: {error}")
 
