@@ -272,7 +272,7 @@ def get_running_configuration() -> RunningConfiguration:
         export_as_pdf=_none_or_empty(os.getenv("INPUT_EXPORT-AS-PDF", None)),
         upload_to_code_scanning=upload_to_code_scanning,
 
-        github_token=os.getenv("GITHUB_TOKEN", None),
+        github_token=os.getenv("INPUT_TOKEN", None),
         github_repository=os.getenv("GITHUB_REPOSITORY", None),
         github_organization=os.getenv("GITHUB_REPOSITORY_OWNER", None),
         github_repository_owner=os.getenv("GITHUB_REPOSITORY_OWNER", None),

@@ -21,10 +21,6 @@ inputs:
     description: "Export as PDF"
     required: false
     default: "false"
-  github-token:
-    description: "GitHub Token"
-    required: true
-    default: ${{ github.token }}
   token:
     default: ${{ github.token }}
 
@@ -34,6 +30,4 @@ branding:
 runs:
   using: "docker"
   image: "Dockerfile"
-  env:
-    AUTO_GITHUB_TOKEN: ${{ github.token }}
 
