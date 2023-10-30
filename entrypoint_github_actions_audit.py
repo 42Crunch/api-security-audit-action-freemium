@@ -165,7 +165,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         print(" ".join(audit_command), flush=True)
 
         print(f"    > Running audit on {full_path}")
-        audit_command_result = subprocess.run(audit_command, shell=True)
+        audit_command_result = subprocess.run(audit_command)
         if audit_command_result.returncode != 0:
             print(f"[!] Unable to run audit on {full_path}")
             continue
