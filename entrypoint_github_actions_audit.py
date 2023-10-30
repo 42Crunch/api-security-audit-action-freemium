@@ -2,8 +2,12 @@
 
 import os
 import sys
+import gzip
+import json
+import base64
 import platform
 import subprocess
+import urllib.request
 
 from glob import glob
 from dataclasses import dataclass
@@ -200,22 +204,54 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         if running_config.upload_to_code_scanning:
             print(f"    > Uploading SARIF report to GitHub code scanning")
 
-            upload_to_code_scanning_command = [
-                binaries.upload_to_github_code_scanning,
-                '--github-token', running_config.github_token,
-                '--github-repository', running_config.github_repository,
-                '--github-sha', running_config.github_sha,
-                '--ref', running_config.github_ref,
-                sarif_report
-            ]
+            # Convert the SARIF file to base64 after gzip compression
+            try:
+                with open(sarif_report, 'rb') as f:
+                    zipped_sarif = base64.b64encode(gzip.compress(f.read())).decode()
+            except FileNotFoundError:
+                print(f"[!] File {sarif_report} not found")
+                exit(1)
 
-            upload_to_code_scanning_results = subprocess.run(upload_to_code_scanning_command)
+            # Construct the request
+            url = f"https://api.github.com/repos/{running_config.github_repository}/code-scanning/sarifs"
+            headers = {
+                "Authorization": f"Bearer {running_config.github_token}",
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28"
+            }
+            data = {
+                "commit_sha": running_config.github_sha,
+                "ref": running_config.github_ref,
+                "sarif": zipped_sarif,
+                "tool_name": "42Crunch REST API Static Security Testing",
+                "checkout_uri": f"file://{os.getcwd()}"
+            }
+            req = urllib.request.Request(url, headers=headers, data=json.dumps(data).encode())
 
-            if upload_to_code_scanning_results.returncode != 0:
-                print(f"[!] Unable to upload SARIF report to GitHub code scanning")
-                print(upload_to_code_scanning_results.stderr)
-                print(upload_to_code_scanning_results.stdout)
-                continue
+            # Send the request
+            try:
+                with urllib.request.urlopen(req) as response:
+                    print(response.read().decode(), flush=True)
+            except Exception as e:
+                print(f"[!] HTTP Error {e}", flush=True)
+                exit(1)
+
+            # upload_to_code_scanning_command = [
+            #     binaries.upload_to_github_code_scanning,
+            #     '--github-token', running_config.github_token,
+            #     '--github-repository', running_config.github_repository,
+            #     '--github-sha', running_config.github_sha,
+            #     '--ref', running_config.github_ref,
+            #     sarif_report
+            # ]
+            #
+            # upload_to_code_scanning_results = subprocess.run(upload_to_code_scanning_command)
+            #
+            # if upload_to_code_scanning_results.returncode != 0:
+            #     print(f"[!] Unable to upload SARIF report to GitHub code scanning")
+            #     print(upload_to_code_scanning_results.stderr)
+            #     print(upload_to_code_scanning_results.stdout)
+            #     continue
 
 
 def setup_audit_configuration(file_path: str = '.42c/conf.yaml'):
