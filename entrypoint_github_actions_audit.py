@@ -240,12 +240,20 @@ def get_running_configuration() -> RunningConfiguration:
         else:
             return False
 
+    def _none_or_empty(value: str) -> str:
+        if value is None:
+            return None
+        elif value.strip() == "":
+            return None
+        else:
+            return value
+
     print("Environment variables:")
     print(os.environ, flush=True)
 
     data_enrich = _to_bool(os.getenv("INPUT_DATA-ENRICH", "false"))
     enforce_sqgl = _to_bool(os.getenv("INPUT_ENFORCE-SQGL", "false"))
-    upload_to_code_scanning = _to_bool(os.getenv("INPUT-UPLOAD_TO-CODE-SCANNING", "false"))
+    upload_to_code_scanning = _to_bool(os.getenv("INPUT-UPLOAD-TO-CODE-SCANNING", "false"))
 
     log_level = os.getenv("INPUT_LOG-LEVEL", "INFO")
     if log_level is None:
@@ -259,8 +267,8 @@ def get_running_configuration() -> RunningConfiguration:
         log_level=log_level,
         data_enrich=data_enrich,
         enforce_sqgl=enforce_sqgl,
-        sarif_report=os.getenv("INPUT_SARIF-REPORT", None),
-        export_as_pdf=os.getenv("INPUT_EXPORT-AS-PDF", None),
+        sarif_report=_none_or_empty(os.getenv("INPUT_SARIF-REPORT", None)),
+        export_as_pdf=_none_or_empty(os.getenv("INPUT_EXPORT-AS-PDF", None)),
         upload_to_code_scanning=upload_to_code_scanning,
 
         github_token=os.getenv("GITHUB_TOKEN", None),
