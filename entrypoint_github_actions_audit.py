@@ -253,7 +253,7 @@ def get_running_configuration() -> RunningConfiguration:
 
     data_enrich = _to_bool(os.getenv("INPUT_DATA-ENRICH", "false"))
     enforce_sqgl = _to_bool(os.getenv("INPUT_ENFORCE-SQGL", "false"))
-    upload_to_code_scanning = _to_bool(os.getenv("INPUT-UPLOAD-TO-CODE-SCANNING", "false"))
+    upload_to_code_scanning = _to_bool(os.getenv("INPUT_UPLOAD-TO-CODE-SCANNING", "false"))
 
     log_level = os.getenv("INPUT_LOG-LEVEL", "INFO")
     if log_level is None:
