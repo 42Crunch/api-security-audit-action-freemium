@@ -153,13 +153,16 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             binaries.audit,
             "audit",
             "run",
-            "--enrich=false",
+            "--enrich", "false",
             "--org", running_config.github_repository,
             "--user", running_config.github_repository_owner,
             "--output-format", "json",
             "-o", audit_report,
             full_path
         ]
+
+        print("Command:")
+        print(" ".join(audit_command))
 
         print(f"    > Running audit on {full_path}")
         audit_command_result = subprocess.run(audit_command, shell=True)
