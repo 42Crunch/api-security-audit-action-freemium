@@ -2,16 +2,25 @@
 name: "42Crunch REST API Static Security Testing"
 description: "The REST API Static Security Testing action adds an automatic static application security testing (SAST) to your workflows"
 inputs:
-  github_token:
-    description: "The GitHub token to use for authentication"
-    required: true
-  upload_results:
+  upload-to-code-scanning:
     description: "Upload results to Code Scanning Alerts"
     required: false
     default: "true"
-  openapi_file:
-    description: "The OpenAPI file to scan"
+  enforce-sqg:
+    description: "Enforce Security Quality Gate"
     required: false
+    default: "false"
+  log-level:
+    description: "Log level"
+    required: false
+    default: "info"
+  sarif-report:
+    description: "SARIF report"
+    required: false
+  export-as-pdf:
+    description: "Export as PDF"
+    required: false
+    default: "false"
 
 branding:
   icon: "eye"
