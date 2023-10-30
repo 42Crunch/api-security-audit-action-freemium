@@ -285,6 +285,8 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
 
         if conversion_result.returncode != 0:
             print(f"[!] Unable to convert {audit_report} to SARIF format")
+            print(f"[!] {conversion_result.stderr.decode()}")
+            print(f"[!] {conversion_result.stdout.decode()}")
             continue
 
         #
