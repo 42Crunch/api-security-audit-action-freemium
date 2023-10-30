@@ -162,14 +162,16 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             full_path
         ]
 
-        # If report doesn't exists, skip
-        if not os.path.isfile(audit_report):
-            continue
-
         print(f"    > Running audit on {full_path}")
         audit_command_result = subprocess.run(audit_command, shell=True)
         if audit_command_result.returncode != 0:
             print(f"[!] Unable to run audit on {full_path}")
+            continue
+
+        # If report doesn't exists, skip
+        if not os.path.isfile(audit_report):
+            print(f"[!] Unable to find audit report at {audit_report}")
+            print(f"Error: {audit_command_result.stderr}")
             continue
 
         #
