@@ -63,6 +63,10 @@ RunningConfiguration:
     github_sha: {self.github_sha}
     """
 
+    def __post_init__(self):
+        if self.log_level:
+            self.log_level = self.log_level.lower()
+
 
 def is_security_issues_found(sarif_report: str) -> Tuple[bool, int]:
     """
