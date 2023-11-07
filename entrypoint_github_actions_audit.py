@@ -262,7 +262,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         "--log-level", running_config.log_level
     ]
 
-    if running_config.enforce:
+    if running_config.data_enrich:
         audit_cmd.append("--enrich=true")
     else:
         audit_cmd.append("--enrich=false")
