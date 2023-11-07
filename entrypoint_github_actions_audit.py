@@ -252,6 +252,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         "42ctl",
         "audit",
         "run",
+        "local",
         "-b", binaries,
         "-i", base_dir,
         "-r", output_directory,
