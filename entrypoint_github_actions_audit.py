@@ -300,9 +300,6 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "-a", openapi_file,
             "-o", sarif_file
         ]
-        print(cmd)
-
-        print(os.listdir(output_directory))
 
         try:
             execute(cmd)
