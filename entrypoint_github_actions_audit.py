@@ -2,90 +2,20 @@
 
 import os
 import sys
+import gzip
 import json
+import uuid
+import base64
 import platform
 import subprocess
+import urllib.request
 
-from glob import glob
-from dataclasses import dataclass
 from typing import Tuple
+from dataclasses import dataclass
 
-AUDIT_CONFIG = """
-audit:
-  branches:
-    main:
-      fail_on:
-        score:
-          data: 70
-          security: 30
-"""
 
-CLEAN_SARIF_REPORT = """
-{
-  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
-  "version": "2.1.0",
-  "runs": [
-    {
-      "tool": {
-        "driver": {
-          "name": "templateanalyzer",
-          "organization": "Microsoft",
-          "fullName": "Template Analyzer",
-          "version": "0.5.2",
-          "informationUri": "https://github.com/Azure/template-analyzer",
-          "properties": {
-            "RawName": "templateanalyzer"
-          }
-        }
-      },
-      "invocations": [
-        {
-          "startTimeUtc": "2023-10-19T21:57:06.696Z",
-          "endTimeUtc": "2023-10-19T21:57:11.166Z",
-          "toolExecutionNotifications": [
-            {
-              "message": {
-                "text": "Discovered 1 template-parameter pairs to analyze"
-              },
-              "level": "note"
-            }
-          ],
-          "executionSuccessful": true
-        }
-      ],
-      "versionControlProvenance": [
-        {
-          "repositoryUri": "https://dev.azure.com/AnnotationsRuntimeE2E/AnnotationsRuntimeE2E/_git/AnnotationsRuntimeE2E-KoreaCentral",
-          "revisionId": "7462c01d45e26176afe4e6543fda84dd0881ea20",
-          "branch": "HEAD",
-          "properties": {
-            "RepositoryRoot": "D:\\a\\1\\s"
-          }
-        }
-      ],
-      "originalUriBaseIds": {
-        "ROOTPATH": {
-          "uri": "file:///D:/a/1/s"
-        }
-      },
-      "results": [],
-      "automationDetails": {
-        "id": "AnnotationsRuntimeE2E-KoreaCentral"
-      },
-      "columnKind": "utf16CodeUnits",
-      "policies": [
-        {
-          "name": "AzureDevOps",
-          "version": "1.0.0"
-        }
-      ],
-      "properties": {
-        "toolInfoId": "templateanalyzer>>0>>202310192157"
-      }
-    }
-  ]
-}
-"""
+class ExecutionError(Exception):
+    pass
 
 
 @dataclass
@@ -100,9 +30,9 @@ class RunningConfiguration:
     #
     # Configurable parameters
     #
+    enforce: bool = False
     log_level: str = "INFO"
     data_enrich: bool = False
-    enforce_sqgl: bool = False
     upload_to_code_scanning: bool = False
 
     sarif_report: str = None
@@ -121,7 +51,7 @@ class RunningConfiguration:
 RunningConfiguration:
     log_level: {self.log_level}
     data_enrich: {self.data_enrich}
-    enforce_sqgl: {self.enforce_sqgl}
+    enforce_sqgl: {self.enforce}
     upload_to_code_scanning: {self.upload_to_code_scanning}
     sarif_report: {self.sarif_report}
     export_as_pdf: {self.export_as_pdf}
@@ -134,8 +64,96 @@ RunningConfiguration:
     """
 
 
-class InvalidOpenAPIFile(Exception):
-    ...
+def is_security_issues_found(sarif_report: str) -> Tuple[bool, int]:
+    """
+    Check if security issues were found in the SARIF report.
+
+    If the SARIF report has no results, it means that no security issues were found. So, we return False. Otherwise, True
+    """
+    with open(sarif_report, "r") as f:
+        data = json.load(f)
+
+        try:
+            issues_found = len(data["runs"][0]["results"])
+
+            if issues_found > 0:
+                return True, issues_found
+            else:
+                return False, -1
+        except (KeyError, IndexError):
+            return False, -1
+
+
+def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_path):
+    if not github_token:
+        print("[!] Missing or empty GitHub token")
+        exit(1)
+
+    # Convert the SARIF file to base64 after gzip compression
+    try:
+        with open(sarif_file_path, 'rb') as f:
+            zipped_sarif = base64.b64encode(gzip.compress(f.read())).decode()
+    except FileNotFoundError:
+        print(f"[!] File {sarif_file_path} not found")
+        exit(1)
+
+    # Extract owner and repo from the provided repository
+    try:
+        owner, repo = github_repository.split('/')
+    except ValueError:
+        print(f"[!] Invalid repository {github_repository}")
+        exit(1)
+
+    # Current directory as a URL (approximation)
+    checkout_uri = f"file://{os.getcwd()}"
+
+    # Construct the request
+    url = f"https://api.github.com/repos/{owner}/{repo}/code-scanning/sarifs"
+    headers = {
+        "Authorization": f"Bearer {github_token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+    data = {
+        "commit_sha": github_sha,
+        "ref": ref,
+        "sarif": zipped_sarif,
+        "tool_name": "42Crunch REST API Static Security Testing",
+        "checkout_uri": checkout_uri
+    }
+    req = urllib.request.Request(url, headers=headers, data=json.dumps(data).encode())
+
+    # Send the request
+    try:
+        with urllib.request.urlopen(req) as response:
+            print(response.read().decode(), flush=True)
+    except Exception as e:
+        print(f"[!] HTTP Error: {e}", flush=True)
+        exit(1)
+
+
+def display_header(title: str, text: str):
+    print()
+    print("#" * 80)
+    print(f"# {title}")
+    print("#")
+    print(f"# {text}")
+    print("#" * 80)
+    print()
+
+
+def execute(command: str | list):
+    if type(command) is str:
+        cmd = command.split(" ")
+    else:
+        cmd = command
+
+    result = subprocess.run(cmd, capture_output=True)
+
+    if result.returncode != 0:
+        raise ExecutionError(result.stderr.decode())
+
+    return result
 
 
 def get_binaries_paths() -> Binaries:
@@ -186,177 +204,6 @@ def get_binaries_paths() -> Binaries:
     return binaries
 
 
-def validate_openapi(openapi_file: str):
-    with open(openapi_file, "r") as f:
-        data = f.read(500)
-
-        if "openapi" not in data:
-            raise InvalidOpenAPIFile(f"File '{openapi_file}' is not a valid OpenAPI 3.0 specification")
-
-        if "3.0" not in data:
-            raise InvalidOpenAPIFile(f"File '{openapi_file}' is not a valid OpenAPI 3.0 specification")
-
-
-def is_security_issues_found(sarif_report: str) -> Tuple[bool, int]:
-    """
-    Check if security issues were found in the SARIF report.
-
-    If the SARIF report has no results, it means that no security issues were found. So, we return False. Otherwise, True
-    """
-    with open(sarif_report, "r") as f:
-        data = json.load(f)
-
-        try:
-            issues_found = len(data["runs"][0]["results"])
-
-            if issues_found > 0:
-                return True, issues_found
-            else:
-                return False, -1
-        except (KeyError, IndexError):
-            return False, -1
-
-
-def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries: Binaries):
-    json_files = glob('**/*.json', recursive=True)
-    yaml_files = glob('**/*.yaml', recursive=True) + glob('**/*.yml', recursive=True)
-
-    for full_path in json_files + yaml_files:
-        # full_path = os.path.abspath(os.path.join(base_dir, file_path))
-
-        #
-        # Valida OpenAPI file
-        #
-        try:
-            validate_openapi(full_path)
-        except InvalidOpenAPIFile as e:
-            print(f"[!] {full_path} is not a valid OpenAPI file")
-            continue
-
-        #
-        # Run audit
-        #
-        audit_report = f"{full_path}.report"
-
-        audit_command = [
-            binaries.audit,
-            "audit",
-            "run",
-            "--enrich=false",
-            "--org", running_config.github_repository,
-            "--user", running_config.github_repository_owner,
-            "--output-format", "json",
-            "-v", running_config.log_level,
-            "-o", audit_report,
-            full_path
-        ]
-
-        print(f"    > Running audit on {full_path}")
-        audit_command_result = subprocess.run(audit_command, capture_output=True)
-        if audit_command_result.returncode != 0:
-            print(f"[!] Unable to run audit on {full_path}")
-            print(f"[!] {audit_command_result.stderr.decode()}")
-            print(f"[!] {audit_command_result.stdout.decode()}")
-            continue
-
-        # If report doesn't exists, skip
-        if not os.path.isfile(audit_report):
-            print(f"[!] Unable to find audit report at {audit_report}")
-            continue
-
-        #
-        # Convert to SARIF
-        #
-        print(f"    > Converting {audit_report} to SARIF format")
-
-        if running_config.sarif_report:
-            sarif_report = running_config.sarif_report
-        else:
-            sarif_report = f"{full_path}.sarif"
-
-        sarif_converter_command = [
-            binaries.convert_to_sarif,
-            "-a", full_path,
-            "-i", audit_report,
-            "-o", sarif_report
-        ]
-
-        conversion_result = subprocess.run(sarif_converter_command, capture_output=True)
-
-        if conversion_result.returncode != 0:
-            print(f"[!] Unable to convert {audit_report} to SARIF format")
-            print(f"[!] {conversion_result.stderr.decode()}")
-            print(f"[!] {conversion_result.stdout.decode()}")
-            continue
-
-        #
-        # Upload to GitHub scanning code
-        #
-        if running_config.upload_to_code_scanning:
-            print(f"    > Uploading SARIF report to GitHub code scanning")
-
-            upload_to_code_scanning_command = [
-                binaries.upload_to_github_code_scanning,
-                '--github-token', running_config.github_token,
-                '--github-repository', running_config.github_repository,
-                '--github-sha', running_config.github_sha,
-                '--ref', running_config.github_ref,
-                sarif_report
-            ]
-
-            upload_to_code_scanning_results = subprocess.run(upload_to_code_scanning_command, capture_output=True)
-
-            if upload_to_code_scanning_results.returncode != 0:
-                error = upload_to_code_scanning_results.stdout.decode()
-
-                print()
-                print(f"[!] Unable to upload SARIF report to GitHub code scanning:")
-
-                if "403" in error:
-                    print(f"[!] Check that the provided GitHub Token has permissions with the repo scope or security_events scope")
-                    print()
-                    exit(1)
-
-                else:
-                    print(error)
-                    print()
-                    continue
-
-        #
-        # Check if security issues were found
-        #
-
-        ## If enforce_sqgl is set to true, We'll success although security issues were found
-        if running_config.enforce_sqgl:
-            continue
-
-        else:
-
-            ## If enforce_sqgl is set to false, we'll fail if security issues were found
-            found, issues = is_security_issues_found(sarif_report)
-            if found:
-                print()
-                print(f"[!] Security issues found in '{full_path}'. {issues} issues found")
-                print()
-                sys.exit(1)
-
-        #
-        # Export as PDF
-        #
-        if running_config.export_as_pdf:
-            print(f"    > Exporting {sarif_report} to PDF")
-
-
-def setup_audit_configuration(file_path: str = '.42c/conf.yaml'):
-    base_path = os.path.dirname(file_path)
-
-    os.makedirs(base_path, exist_ok=True)
-
-    with open(file_path, 'w') as source_config:
-        source_config.write(AUDIT_CONFIG)
-        source_config.flush()
-
-
 def get_running_configuration() -> RunningConfiguration:
     def _to_bool(value: str) -> bool:
         if value is None:
@@ -374,8 +221,8 @@ def get_running_configuration() -> RunningConfiguration:
         else:
             return value
 
+    enforce = _to_bool(os.getenv("INPUT_ENFORCE-SQG", "false"))
     data_enrich = _to_bool(os.getenv("INPUT_DATA-ENRICH", "false"))
-    enforce_sqgl = _to_bool(os.getenv("INPUT_ENFORCE-SQG", "false"))
     upload_to_code_scanning = _to_bool(os.getenv("INPUT_UPLOAD-TO-CODE-SCANNING", "false"))
 
     log_level = os.getenv("INPUT_LOG-LEVEL", "INFO")
@@ -389,7 +236,7 @@ def get_running_configuration() -> RunningConfiguration:
     return RunningConfiguration(
         log_level=log_level,
         data_enrich=data_enrich,
-        enforce_sqgl=enforce_sqgl,
+        enforce=enforce,
         sarif_report=_none_or_empty(os.getenv("INPUT_SARIF-REPORT", None)),
         export_as_pdf=_none_or_empty(os.getenv("INPUT_EXPORT-AS-PDF", None)),
         upload_to_code_scanning=upload_to_code_scanning,
@@ -403,15 +250,91 @@ def get_running_configuration() -> RunningConfiguration:
     )
 
 
+def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries: Binaries):
+    output_directory = os.path.join(base_dir, uuid.uuid4().hex)
+
+    #
+    # Run 42Crunch cli audit
+    #
+    audit_cmd = [
+        "42ctl",
+        "audit",
+        "run",
+        "-b", binaries.audit,
+        "-i", base_dir,
+        "-r", output_directory,
+        "-c",  # Copy original OpenAPI file that generated report
+        "--enrich", running_config.data_enrich,
+        "--github-user", running_config.github_repository_owner,
+        "--github-org", running_config.github_organization,
+        "--log-level", running_config.log_level,
+    ]
+
+    try:
+        execute(audit_cmd)
+    except ExecutionError as e:
+        display_header("Audit command failed", str(e))
+        exit(1)
+
+    #
+    # Convert to SARIF
+    #
+    for report in os.listdir(output_directory):
+
+        # Try to locate report files
+        if "audit-report" not in report:
+            continue
+
+        # Report file found
+        report_path = os.path.join(output_directory, report)
+
+        # Related OpenAPI file
+        openapi_file = os.path.join(base_dir, report.replace("audit-report.json", ""))
+
+        # SARIF file name
+        sarif_file = f"{os.path.splitext(os.path.basename(report_path))[0]}.sarif"
+
+        cmd = [
+            "42ctl",
+            "audit",
+            "report",
+            "to-sarif",
+            "-r", report_path,
+            "-a", openapi_file,
+            "-o", sarif_file
+        ]
+
+        try:
+            execute(cmd)
+        except ExecutionError as e:
+            display_header("Convert to SARIF command failed", str(e))
+            continue
+
+        if running_config.enforce:
+
+            ## If enforce is set to false, we'll fail if security issues were found
+            found, issues = is_security_issues_found(sarif_file)
+            if found:
+                display_header("Security issues found", f"{issues} issues found")
+                sys.exit(1)
+
+        #
+        # Upload to GitHub code scanning
+        #
+        if running_config.upload_to_code_scanning:
+            upload_sarif(
+                github_token=running_config.github_token,
+                github_repository=running_config.github_repository,
+                github_sha=running_config.github_sha,
+                ref=running_config.github_ref,
+                sarif_file_path=sarif_file
+            )
+
+
 def main():
     current_dir = os.getcwd()
     binaries = get_binaries_paths()
     running_config = get_running_configuration()
-
-    scan_audit_config = os.path.join(current_dir, '.42c/conf.yaml')
-
-    # Write audit configuration to temporary file
-    setup_audit_configuration(scan_audit_config)
 
     # Run discovery
     discovery_run(running_config, current_dir, binaries)

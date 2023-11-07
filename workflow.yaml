@@ -33,11 +33,6 @@ jobs:
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
-      - name: get PR number
-        id: getprnumber
-        run: |
-          pr_id=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          echo "PR_ID=$pr_id" >> $GITHUB_OUTPUT
       - name: 42crunch-static-api-testing
         uses: 42crunch/api-security-audit-action-freemium@main
         with:
