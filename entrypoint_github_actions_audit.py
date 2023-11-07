@@ -286,7 +286,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         report_path = os.path.join(output_directory, report)
 
         # Related OpenAPI file
-        openapi_file = os.path.join(base_dir, report.replace("audit-report.json", ""))
+        openapi_file = os.path.join(base_dir, report.replace(".audit-report.json", ""))
 
         # SARIF file name
         sarif_file = f"{os.path.splitext(os.path.basename(report_path))[0]}.sarif"
