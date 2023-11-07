@@ -17,12 +17,12 @@ from dataclasses import dataclass
 class ExecutionError(Exception):
     pass
 
-
-@dataclass
-class Binaries:
-    audit: str
-    convert_to_sarif: str
-    upload_to_github_code_scanning: str
+#
+# @dataclass
+# class Binaries:
+#     audit: str
+#     convert_to_sarif: str
+#     upload_to_github_code_scanning: str
 
 
 @dataclass
@@ -156,7 +156,7 @@ def execute(command: str | list):
     return result
 
 
-def get_binaries_paths() -> Binaries:
+def get_binary_path() -> str:
     def _get_audit_binary(_is_local_development: bool) -> str:
 
         if _is_local_development:
@@ -184,24 +184,14 @@ def get_binaries_paths() -> Binaries:
             sys.exit(1)
 
     if os.getenv("LOCAL_DEVELOPMENT"):
-        binaries = Binaries(
-            audit=_get_audit_binary(True),
-            convert_to_sarif="/usr/local/bin/convert-to-sarif",
-            upload_to_github_code_scanning="/usr/local/bin/upload-sarif"
-        )
+        binary_path = _get_audit_binary(True)
     else:
-        binaries = Binaries(
-            audit=_get_audit_binary(False),
-            convert_to_sarif="/usr/local/bin/convert-to-sarif",
-            upload_to_github_code_scanning="/usr/local/bin/upload-sarif"
-        )
+        binary_path = _get_audit_binary(False)
 
     # Check that binaries exist
-    _check_binary_exists(binaries.audit)
-    _check_binary_exists(binaries.convert_to_sarif)
-    _check_binary_exists(binaries.upload_to_github_code_scanning)
+    _check_binary_exists(binary_path)
 
-    return binaries
+    return binary_path
 
 
 def get_running_configuration() -> RunningConfiguration:
@@ -250,7 +240,7 @@ def get_running_configuration() -> RunningConfiguration:
     )
 
 
-def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries: Binaries):
+def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries: str):
     output_directory = os.path.join(base_dir, uuid.uuid4().hex)
 
     #
@@ -260,7 +250,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         "42ctl",
         "audit",
         "run",
-        "-b", binaries.audit,
+        "-b", binaries,
         "-i", base_dir,
         "-r", output_directory,
         "-c",  # Copy original OpenAPI file that generated report
@@ -332,12 +322,12 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
 
 
 def main():
+    binary = get_binary_path()
     current_dir = os.getcwd()
-    binaries = get_binaries_paths()
     running_config = get_running_configuration()
 
     # Run discovery
-    discovery_run(running_config, current_dir, binaries)
+    discovery_run(running_config, current_dir, binary)
 
 
 # Main script execution
