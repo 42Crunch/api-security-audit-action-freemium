@@ -307,14 +307,6 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             display_header("Convert to SARIF command failed", str(e))
             continue
 
-        if running_config.enforce:
-
-            ## If enforce is set to false, we'll fail if security issues were found
-            found, issues = is_security_issues_found(sarif_file)
-            if found:
-                display_header("Security issues found", f"{issues} issues found")
-                sys.exit(1)
-
         #
         # Upload to GitHub code scanning
         #
@@ -326,6 +318,14 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
                 ref=running_config.github_ref,
                 sarif_file_path=sarif_file
             )
+
+        if running_config.enforce:
+
+            ## If enforce is set to false, we'll fail if security issues were found
+            found, issues = is_security_issues_found(sarif_file)
+            if found:
+                display_header("Security issues found", f"{issues} issues found")
+                sys.exit(1)
 
 
 def main():
