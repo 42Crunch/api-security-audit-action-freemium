@@ -148,6 +148,8 @@ def execute(command: str | list):
     else:
         cmd = command
 
+    print(f"Executing command: {cmd}")
+
     result = subprocess.run(cmd, capture_output=True)
 
     if result.returncode != 0:
@@ -257,8 +259,10 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         "--enrich", running_config.data_enrich,
         "--github-user", running_config.github_repository_owner,
         "--github-org", running_config.github_organization,
-        "--log-level", running_config.log_level,
+        "--log-level", running_config.log_level
     ]
+
+    print(f"Running audit command: {audit_cmd}")
 
     try:
         execute(audit_cmd)
