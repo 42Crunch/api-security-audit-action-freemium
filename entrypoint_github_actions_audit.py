@@ -152,8 +152,6 @@ def execute(command: str | list):
     else:
         cmd = command
 
-    print(f"Executing command: {cmd}")
-
     result = subprocess.run(cmd, capture_output=True)
 
     if result.returncode != 0:
@@ -269,8 +267,6 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
     if running_config.data_enrich:
         audit_cmd.append("--enrich")
 
-    print(f"Running audit command: {audit_cmd}")
-
     try:
         execute(audit_cmd)
     except ExecutionError as e:
@@ -304,6 +300,9 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "-a", openapi_file,
             "-o", sarif_file
         ]
+        print(cmd)
+
+        print(os.listdir(output_directory))
 
         try:
             execute(cmd)
