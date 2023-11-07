@@ -257,11 +257,15 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         "-i", base_dir,
         "-r", output_directory,
         "-c",  # Copy original OpenAPI file that generated report
-        f"--enrich={'true' if running_config.data_enrich else 'false'}",
         "--github-user", running_config.github_repository_owner,
         "--github-org", running_config.github_organization,
         "--log-level", running_config.log_level
     ]
+
+    if running_config.enforce:
+        audit_cmd.append("--enrich=true")
+    else:
+        audit_cmd.append("--enrich=false")
 
     print(f"Running audit command: {audit_cmd}")
 
