@@ -263,9 +263,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
     ]
 
     if running_config.data_enrich:
-        audit_cmd.append("--enrich=true")
-    else:
-        audit_cmd.append("--enrich=false")
+        audit_cmd.append("--enrich")
 
     print(f"Running audit command: {audit_cmd}")
 
