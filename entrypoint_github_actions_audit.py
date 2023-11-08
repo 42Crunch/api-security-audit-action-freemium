@@ -290,7 +290,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "42ctl",
             "audit",
             "report",
-            "sarif"
+            "sarif",
             "convert",
             "-r", report_path,
             "-a", openapi_file,
