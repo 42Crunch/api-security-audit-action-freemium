@@ -1,19 +1,31 @@
 # action.yml
-name: "42Crunch REST API Static Security Testing"
-description: "The REST API Static Security Testing action adds an automatic static application security testing (SAST) to your workflows"
+name: "42Crunch REST API Dynamic Security Testing"
+description: "The REST API Static Security Testing action adds an automatic dynamic application security testing (DAST) to your workflows"
 inputs:
   upload-to-code-scanning:
     description: "Upload results to Code Scanning Alerts"
     required: false
     default: "true"
-  enforce-sqg:
-    description: "Enforce Security Quality Gate"
+  token:
+    description: "Personal Access Token"
+    default: ${{ github.token }}
+  target-host:
+    description: "The URL of the API deployment used by the scan. It must be a public URL or an internal URL accessible from the runner."
+    required: true
+  api-definition:
+    description: "Filename of the API to scan , relative to the workspace root."
+    required: true
+  api-credential:
+    description: "The API key or token required to invoke the API hosted at target-host - This value can come from a GitHub secret or dynamically obtained in a previous pipeline step."
     required: false
-    default: "false"
   log-level:
     description: "Log level"
     required: false
     default: "info"
+  data-enrich:
+    description: "Enrich the OpenAPI file leveraging the default data dictionary"
+    required: false
+    default: "true"
   sarif-report:
     description: "SARIF report"
     required: false
@@ -21,9 +33,7 @@ inputs:
     description: "Export as PDF"
     required: false
     default: "false"
-  token:
-    description: "Personal Access Token"
-    default: ${{ github.token }}
+
 
 branding:
   icon: "eye"
