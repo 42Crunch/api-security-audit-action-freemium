@@ -17,13 +17,6 @@ from dataclasses import dataclass
 class ExecutionError(Exception):
     pass
 
-#
-# @dataclass
-# class Binaries:
-#     audit: str
-#     convert_to_sarif: str
-#     upload_to_github_code_scanning: str
-
 
 @dataclass
 class RunningConfiguration:
