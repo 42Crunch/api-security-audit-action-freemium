@@ -276,6 +276,8 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
     #
     # Convert to SARIF
     #
+    sarif_reports = []
+
     for report in os.listdir(output_directory):
 
         # Try to locate report files
@@ -295,7 +297,8 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "42ctl",
             "audit",
             "report",
-            "to-sarif",
+            "sarif"
+            "convert",
             "-r", report_path,
             "-a", openapi_file,
             "-o", sarif_file
@@ -303,6 +306,8 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
 
         try:
             execute(cmd)
+
+            sarif_reports.append(sarif_file)
         except ExecutionError as e:
             display_header("Convert to SARIF command failed", str(e))
             continue
@@ -326,6 +331,26 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             if found:
                 display_header("Security issues found", f"{issues} issues found")
                 sys.exit(1)
+
+    #
+    # Merge SARIF files
+    #
+    if running_config.sarif_report:
+        cmd = [
+            "42ctl",
+            "audit",
+            "report",
+            "sarif",
+            "merge",
+            "-o", running_config.sarif_report,
+            *sarif_reports
+        ]
+
+        try:
+            execute(cmd)
+        except ExecutionError as e:
+            display_header("Merge SARIF files command failed", str(e))
+            exit(1)
 
 
 def main():
