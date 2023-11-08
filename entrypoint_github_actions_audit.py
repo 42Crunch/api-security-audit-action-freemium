@@ -131,11 +131,11 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
 
 def display_header(title: str, text: str):
     print()
-    print("#" * 80)
-    print(f"# {title}")
-    print("#")
-    print(f"# {text}")
-    print("#" * 80)
+    print("!" * 80)
+    print(f"! {title}")
+    print("!")
+    print(f"{text}")
+    print("!" * 80)
     print()
 
 
@@ -288,8 +288,11 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         # Report file found
         report_path = os.path.join(output_directory, report)
 
-        # Related OpenAPI file
-        openapi_file = os.path.join(base_dir, report.replace(".audit-report.json", ""))
+        # Related OpenAPI file.
+        #
+        # IMPORTANT: FOR GitHub Code Scanning, the OpenAPI file must be relative to the repository root,
+        # and can't start with: /github/workspace
+        openapi_file = report.replace(".audit-report.json", "")
 
         # SARIF file name
         sarif_file = f"{os.path.splitext(os.path.basename(report_path))[0]}.sarif"
