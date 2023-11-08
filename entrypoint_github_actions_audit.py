@@ -148,7 +148,15 @@ def execute(command: str | list):
     result = subprocess.run(cmd, capture_output=True)
 
     if result.returncode != 0:
-        raise ExecutionError(result.stderr.decode())
+        message = [f"Command failed with exit code {result.returncode}"]
+
+        if result.stdout:
+            message.append(f"stdout: {result.stdout.decode()}")
+
+        if result.stderr:
+            message.append(f"stderr: {result.stderr.decode()}")
+
+        raise ExecutionError("\n".join(message))
 
     return result
 
