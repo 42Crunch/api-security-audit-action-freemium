@@ -123,7 +123,7 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
     # Send the request
     try:
         with urllib.request.urlopen(req) as response:
-            print(response.read().decode(), flush=True)
+            response.read()
     except Exception as e:
         print(f"[!] HTTP Error: {e}", flush=True)
         exit(1)
