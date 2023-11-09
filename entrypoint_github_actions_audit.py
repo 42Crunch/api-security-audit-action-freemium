@@ -139,7 +139,7 @@ def display_header(title: str, text: str):
     print()
 
 
-def execute(command: str | list):
+def execute(command: str | list, verbose: bool = False):
     if type(command) is str:
         cmd = command.split(" ")
     else:
@@ -157,6 +157,10 @@ def execute(command: str | list):
             message.append(f"stderr: {result.stderr.decode()}")
 
         raise ExecutionError("\n".join(message))
+
+    if verbose:
+        if result.stdout:
+            print(result.stdout.decode())
 
     return result
 
@@ -269,7 +273,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         audit_cmd.append("--enrich")
 
     try:
-        execute(audit_cmd)
+        execute(audit_cmd, True)
     except ExecutionError as e:
         display_header("Audit command failed", str(e))
         exit(1)
