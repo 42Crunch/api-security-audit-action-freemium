@@ -300,8 +300,6 @@ def scan_run(running_config: RunningConfiguration, base_dir: str, binaries: str)
     else:
         sarif_report = os.path.join(base_dir, f"{openapi_file}.sarif")
 
-    print(os.listdir(base_dir))
-
     cmd = [
         "42ctl",
         "scan",
@@ -319,12 +317,14 @@ def scan_run(running_config: RunningConfiguration, base_dir: str, binaries: str)
         display_header("Convert to SARIF command failed", str(e))
         return
 
-    print(os.listdir(base_dir))
     #
     # Upload to GitHub code scanning
     #
     if running_config.upload_to_code_scanning:
+        print("#" * 80)
         print("Uploading to GitHub code scanning")
+        print("#" * 80)
+
         upload_sarif(
             github_token=running_config.github_token,
             github_repository=running_config.github_repository,
