@@ -8,5 +8,5 @@ COPY ./entrypoint_github_actions_audit.py /entrypoint-github-actions-audit
 RUN chmod +x /entrypoint-*
 
 WORKDIR /github/workspace
-#ENTRYPOINT ["/entrypoint-github-actions-audit"]
-ENTRYPOINT ["/entrypoint-github-actions-scan"]
+ENTRYPOINT ["/entrypoint-github-actions-audit"]
+#ENTRYPOINT ["/entrypoint-github-actions-scan"]
