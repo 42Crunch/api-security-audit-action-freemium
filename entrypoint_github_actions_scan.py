@@ -307,7 +307,7 @@ def scan_run(running_config: RunningConfiguration, base_dir: str, binaries: str)
         "sarif",
         "convert",
         "-r", scan_output_report,
-        "-a", openapi_file,
+        "-a", running_config.api_definition,
         "-o", sarif_report
     ]
 
