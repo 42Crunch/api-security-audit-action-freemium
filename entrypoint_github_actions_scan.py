@@ -304,7 +304,7 @@ def scan_run(running_config: RunningConfiguration, base_dir: str, binaries: str)
 
     cmd = [
         "42ctl",
-        "audit",
+        "scan",
         "report",
         "sarif",
         "convert",
