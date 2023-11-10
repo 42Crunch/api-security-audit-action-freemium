@@ -60,6 +60,7 @@ RunningConfiguration:
         if self.log_level:
             self.log_level = self.log_level.lower()
 
+        self.github_repository = self.github_repository.split("/")[1] # trim owner from repo name
 
 def is_security_issues_found(sarif_report: str) -> Tuple[bool, int]:
     """
@@ -266,7 +267,8 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         "-c",  # Copy original OpenAPI file that generated report
         "--github-user", running_config.github_repository_owner,
         "--github-org", running_config.github_organization,
-        "--log-level", running_config.log_level
+        "--log-level", running_config.log_level,
+        "--github-repo", running_config.github_repository,
     ]
 
     if running_config.data_enrich:
