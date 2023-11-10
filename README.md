@@ -65,6 +65,10 @@ If not present, the PDF report is not generated.
 
 ## Examples
 
+### Single step example
+
+A typical new step in an existing workflow would look like this:
+
 ```yaml
 - name: 42crunch-static-api-testing
         uses: 42Crunch/api-security-audit-action-freemium@v1
@@ -75,6 +79,8 @@ If not present, the PDF report is not generated.
           export-as-pdf: audit-report-${{ github.run_id }}.pdf
           log-level: info
 ```
+
+### Full workflow example
 
 A typical workflow which checks the contents of the repository, runs Security Audit on each of the OpenAPI files found in the project and saves the SARIF file as an artifact would look like this:
 
@@ -93,9 +99,9 @@ jobs:
       security-events: write # for results upload to Github Code Scanning
     runs-on: ubuntu-latest
     steps:
-      - name: checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v3
-      - name: 42crunch-static-api-testing
+      - name: Audit API definition for security issues
         uses: 42Crunch/api-security-audit-action-freemium@v1
         with:
           # Upload results to Github Code Scanning
@@ -103,7 +109,6 @@ jobs:
           upload-to-code-scanning: true
           log-level: info
           sarif-report: 42Crunch_AuditReport_${{ github.run_id }}.SARIF
-          enforce-sqg: true
       - name: save-audit-report
         if: always()        
         uses: actions/upload-artifact@v3
