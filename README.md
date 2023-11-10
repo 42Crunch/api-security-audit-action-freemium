@@ -82,16 +82,18 @@ A typical new step in an existing workflow would look like this:
 
 ### Full workflow example
 
-A typical workflow which checks the contents of the repository, runs Security Audit on each of the OpenAPI files found in the project and saves the SARIF file as an artifact would look like this:
+A typical workflow which checks out the contents of the repository, runs Security Audit on each of the OpenAPI files found in the workspace and saves the resulting SARIF file as an artifact would look like this:
 
 ```yaml
 name: "42Crunch API Security Audit"
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ "main" ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ main ]
+    branches: [ "main" ]  
 
 jobs:
   run_42c_audit:
