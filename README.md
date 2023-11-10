@@ -85,7 +85,7 @@ A typical new step in an existing workflow would look like this:
 A typical workflow which checks the contents of the repository, runs Security Audit on each of the OpenAPI files found in the project and saves the SARIF file as an artifact would look like this:
 
 ```yaml
-name: "core-workflow"
+name: "42Crunch API Security Audit"
 
 on: 
   pull_request:
