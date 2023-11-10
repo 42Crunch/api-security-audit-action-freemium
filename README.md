@@ -50,7 +50,7 @@ Default is `INFO`.
 
 Enrichs the OpenAPI file leveraging 42Crunch default data dictionary. For each property with a standard format (such as uuid or date-time), patterns and constraints are added to the OpenAPI file before it is audited.
 
-Default is ` false`.
+Default is `false`.
 
 ### `sarif-report`
 
