@@ -2,10 +2,10 @@
 
 The REST API Static Security Testing action locates REST API contracts that follow the OpenAPI Specification (OAS, formerly known as Swagger) and runs thorough security checks on them. Both OAS v2 and v3.0.x are supported, in both JSON and YAML format.
 
-This Github action is working in freemium mode: organizations can run 25 audits per month per repository, with a maximum of 3 repositories per organisation.
+This Github action is working in a freemium mode: organizations can run 25 audits per month per repository, with a maximum of three repositories per organization.
 
 You can use this action in the following scenarios:
-- Add automatic static API security testing (SAST) task to your CI/CD workflows.
+- Add an automatic static API security testing (SAST) task to your CI/CD workflows.
 - Perform these checks on pull request reviews and/or code merges.
 - Flag the located issues in GitHub's Security / Code Scanning Alerts.
 
@@ -13,9 +13,9 @@ You can use this action in the following scenarios:
 
 By default, this action will:
 
-1. Look for any `.json` and `.yaml/.yml` files in the repository.
-2. Pick the files that use OpenAPI/Swagger 2.0/3.0x schemas.
-3. Perform security audit on each OpenAPI definitions.
+1. Look for any `.json` and `.yaml` or ``.yml` files in the repository.
+2. Pick the files that use OpenAPI (a.k.a Swagger ) 2.0 or 3.0x schemas.
+3. Perform security audit on each OpenAPI definition.
 
 ## Action inputs
 
@@ -36,8 +36,8 @@ jobs:
 
 ### `enforce-sqg`
 
-If set to `true`, the task with return a failure when security quality gates (SQG) criteria have failed.
-If set to `false`, the action reports SQG failures scenarios without enforcing them (i.e. give a grace period to development teams before you start breaking builds).
+If set to `true`, the task returns a failure when security quality gates (SQG) criteria have failed.
+If set to `false`, the action reports SQG failures scenarios without enforcing them, giving a grace period to development teams before breaking builds.
 
 Default is `false`.  
 
@@ -48,9 +48,9 @@ Default is `INFO`.
 
 ### `data-enrich`
 
-Enrichs the OpenAPI file leveraging 42Crunch default data dictionary. For each property with a standard format (such as uuid or date-time), patterns and constraints will be added to the OpenAPI file before it is audited.
+Enrichs the OpenAPI file leveraging 42Crunch default data dictionary. For each property with a standard format (such as uuid or date-time), patterns and constraints are added to the OpenAPI file before it is audited.
 
-Default is ` true`.
+Default is ` false`.
 
 ### `sarif-report`
 
@@ -59,7 +59,7 @@ If not present, the SARIF report is not generated.
 
 ### `export-as-pdf`
 
-Exports the audit report highlights as PDF.
+Exports a summary of the audit reports as PDF.
 
 If not present, the PDF report is not generated.
 
@@ -76,12 +76,11 @@ If not present, the PDF report is not generated.
           log-level: info
 ```
 
-A typical workflow which checks the contents of the repository, runs Security Audit on each of the OpenAPI files found in the project and saves the SARIF file as artifact would look like this:
+A typical workflow which checks the contents of the repository, runs Security Audit on each of the OpenAPI files found in the project and saves the SARIF file as an artifact would look like this:
 
 ```yaml
 name: "core-workflow"
 
-# follow standard Code Scanning triggers
 on: 
   pull_request:
     # The branches below must be a subset of the branches above
@@ -99,7 +98,7 @@ jobs:
       - name: 42crunch-static-api-testing
         uses: 42Crunch/api-security-audit-action-freemium@v1
         with:
-          # Upload results to Github code scanning
+          # Upload results to Github Code Scanning
           # Set to false if you don't have Github Advanced Security.
           upload-to-code-scanning: true
           log-level: info
