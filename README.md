@@ -87,7 +87,8 @@ A typical workflow which checks the contents of the repository, runs Security Au
 ```yaml
 name: "42Crunch API Security Audit"
 
-on: 
+on:
+  workflow_dispatch:
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ main ]
