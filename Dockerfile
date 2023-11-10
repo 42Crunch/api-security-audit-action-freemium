@@ -1,4 +1,4 @@
-FROM cr0hn/sample-an-testing-for-documentation:v1.0.1
+FROM cr0hn/sample-an-testing-for-documentation:v1.0.2
 
 #
 # Specific instructions for GitHub
