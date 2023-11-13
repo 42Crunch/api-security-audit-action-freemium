@@ -360,7 +360,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
     for report in os.listdir(output_directory):
 
         # Try to locate report files
-        if "audit-report" not in report or "meta" in report:
+        if "audit-report" not in report or "metadata" in report:
             continue
 
         # Report file found
