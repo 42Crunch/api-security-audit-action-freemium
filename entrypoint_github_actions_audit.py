@@ -329,12 +329,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         logger.error(display_header("Audit command failed", str(e)))
         exit(1)
 
-    print("STDOUT")
-    print(stdout_response)
-
-    print("STDERR")
-    print(stderr_response)
-
+    # TODO:
     # Audit log is a JSON-like object. We need to parse it to get the results
     # try:
     #     audit_logs: dict = json.loads(audit_response)
