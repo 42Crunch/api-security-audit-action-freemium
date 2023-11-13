@@ -408,7 +408,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             logger.info(f"Uploading '{sarif_file}' to GitHub code scanning")
             upload_sarif(
                 github_token=running_config.github_token,
-                github_repository=running_config.github_repository,
+                github_repository=running_config.github_organization,
                 github_sha=running_config.github_sha,
                 ref=running_config.github_ref,
                 sarif_file_path=sarif_file
