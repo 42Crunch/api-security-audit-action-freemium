@@ -158,9 +158,9 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
     # Send the request
     try:
         with urllib.request.urlopen(req) as response:
-            response.read()
+            response = response.read().decode()
     except Exception as e:
-        logger.error(display_header("Unable to upload SARIF file to GitHub code scanning", str(e)))
+        logger.error(display_header(f"Unable to upload SARIF file to GitHub code scanning: {str(e)}.\n\n{response}"))
         exit(1)
 
 
