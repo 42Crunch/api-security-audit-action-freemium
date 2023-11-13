@@ -115,7 +115,7 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
     # Extract owner and repo from the provided repository
     if "/" not in github_repository:
         logger.error(display_header("Invalid repository",
-                                    f"Unable to upload SARIF file to GitHub code scanning: {github_repository} is not a valid repository"))
+                                    f"Unable to upload SARIF file to GitHub code scanning: '{github_repository}' is not a valid repository"))
         exit(1)
 
     # Current directory as a URL (approximation)
@@ -161,7 +161,7 @@ def display_header(title: str, text: str):
 """
 
 
-def execute(command: str | list, capture_output: bool = False) -> Optional[str]:
+def execute(command: str | list, capture_output: bool = False) -> Optional[Tuple[str, str]]:
     if type(command) is str:
         cmd = command.split(" ")
     else:
@@ -180,12 +180,9 @@ def execute(command: str | list, capture_output: bool = False) -> Optional[str]:
 
         raise ExecutionError("\n".join(message))
 
-    if capture_output:
-        return result.stdout.decode()
-
     # Scan write in stdout an JSON-like object. We need to parse it to get the results
-    if result.stdout:
-        return result.stdout.decode()
+    if capture_output:
+        return result.stdout.decode(), result.stderr.decode()
 
 
 def get_binary_path() -> str:
@@ -310,11 +307,16 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
 
     try:
 
-        audit_response = execute(audit_cmd, True)
+        stdout_response, stderr_response = execute(audit_cmd, True)
     except ExecutionError as e:
         logger.error(display_header("Audit command failed", str(e)))
-        print("XXXX")
         exit(1)
+
+    print("STDOUT")
+    print(stdout_response)
+
+    print("STDERR")
+    print(stderr_response)
 
     # Audit log is a JSON-like object. We need to parse it to get the results
     # try:
@@ -332,12 +334,12 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
     results_files = os.listdir(output_directory)
 
     # Show, only in debug, Found reports
-    logger.debug(f"Generated reports in '{output_directory}'")
+    logger.debug(f"Reports are generated at: '{output_directory}'")
     logger.debug(f"Found {len(results_files)} files in '{output_directory}'")
     for report in results_files:
         logger.debug(f" - {report}")
 
-    logger.info(f"Converting audit reports to SARIF")
+    logger.info(f"Converting the audit reports to SARIF")
     for report in os.listdir(output_directory):
 
         # Try to locate report files
