@@ -369,19 +369,27 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         logger.debug(f"Converting '{report_path}' to SARIF")
 
         # Load metadata
+        metadata = loading_metadata(report_path)
+
+        try:
+            openapi_file = metadata['openapi_file']
+        except KeyError:
+            logger.error(display_header("OpenAPI file not found", f"Unable to find OpenAPI file for '{report_path}'"))
+            continue
+
         #
         # IMPORTANT: FOR GitHub Code Scanning, the OpenAPI file must be relative to the repository root,
         # and can't start with: /github/workspace
         #
-        metadata = loading_metadata(report_path)
+        # So, we need to remove the /github/workspace prefix from the OpenAPI file
+        #
+        openapi_file = openapi_file.replace("/github/workspace/", "")
 
-        logger.debug(f"Using '{metadata['openapi_file']}' as input OpenAPI file for the SARIF generator")
+        logger.debug(f"Using '{openapi_file}' as input OpenAPI file for the SARIF generator")
 
         # SARIF file name
         sarif_file = f"{report_path}.sarif"
-
         logger.debug(f"Using '{sarif_file}' as output SARIF file")
-        logger.debug(f"Using '{metadata['openapi_file']}' as input OpenAPI file for the SARIF generator")
 
         cmd = [
             "42ctl",
@@ -390,7 +398,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "sarif",
             "convert",
             "-r", report_path,
-            "-a", metadata['openapi_file'],
+            "-a", openapi_file,
             "-o", sarif_file
         ]
 
