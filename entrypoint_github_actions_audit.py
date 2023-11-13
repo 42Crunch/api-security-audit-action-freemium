@@ -6,12 +6,15 @@ import gzip
 import json
 import uuid
 import base64
+import logging
 import platform
 import subprocess
 import urllib.request
 
 from typing import Tuple
 from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 
 class ExecutionError(Exception):
@@ -84,7 +87,7 @@ def is_security_issues_found(sarif_report: str) -> Tuple[bool, int]:
 
 def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_path):
     if not github_token:
-        print("[!] Missing or empty GitHub token")
+        logger.error(display_header("GitHub token not found", "Unable to upload SARIF file to GitHub code scanning"))
         exit(1)
 
     # Convert the SARIF file to base64 after gzip compression
@@ -92,14 +95,14 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
         with open(sarif_file_path, 'rb') as f:
             zipped_sarif = base64.b64encode(gzip.compress(f.read())).decode()
     except FileNotFoundError:
-        print(f"[!] File {sarif_file_path} not found")
+        logger.error(display_header("SARIF file not found", f"Unable to upload SARIF file to GitHub code scanning: {os.path.abspath(sarif_file_path)} not found"))
         exit(1)
 
     # Extract owner and repo from the provided repository
     try:
         owner, repo = github_repository.split('/')
     except ValueError:
-        print(f"[!] Invalid repository {github_repository}")
+        logger.error(display_header("Invalid repository", f"Unable to upload SARIF file to GitHub code scanning: {github_repository} is not a valid repository"))
         exit(1)
 
     # Current directory as a URL (approximation)
@@ -126,18 +129,18 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
         with urllib.request.urlopen(req) as response:
             response.read()
     except Exception as e:
-        print(f"[!] HTTP Error: {e}", flush=True)
+        logger.error(display_header("Unable to upload SARIF file to GitHub code scanning", str(e)))
         exit(1)
 
 
 def display_header(title: str, text: str):
-    print()
-    print("!" * 80)
-    print(f"! {title}")
-    print("!")
-    print(f"{text}")
-    print("!" * 80)
-    print()
+    return f"""
+{'!' * 80}
+! {title}
+!
+! {text}
+{'!' * 80}
+"""
 
 
 def execute(command: str | list, verbose: bool = False):
@@ -272,10 +275,21 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         #"--github-repo", running_config.github_repository,
     ]
 
+    logger.info(f"Running audit command: {audit_cmd}")
+
+    # Show, only in debug, audit parameters
+    logger.debug(f"Using GitHub user: {running_config.github_repository_owner}")
+    logger.debug(f"Using GitHub org: {running_config.github_organization}")
+    logger.debug(f"Using GitHub repo: {running_config.github_repository.split('/')[1]}")
+    logger.debug(f"Using log level: {running_config.log_level}")
+    logger.debug(f"Using '{output_directory}' as result directory")
+    logger.debug(f"Using '{base_dir}' as input directory to look for OpenAPI files")
+
     if running_config.data_enrich:
         audit_cmd.append("--enrich")
 
     try:
+
         execute(audit_cmd, True)
     except ExecutionError as e:
         display_header("Audit command failed", str(e))
@@ -285,7 +299,15 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
     # Convert to SARIF
     #
     sarif_reports = []
+    results_files = os.listdir(output_directory)
 
+    # Show, only in debug, Found reports
+    logger.debug(f"Generated reports in '{output_directory}'")
+    logger.debug(f"Found {len(results_files)} files in '{output_directory}'")
+    for report in results_files:
+        logger.debug(f" - {report}")
+
+    logger.info(f"Converting audit reports to SARIF")
     for report in os.listdir(output_directory):
 
         # Try to locate report files
@@ -295,14 +317,20 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         # Report file found
         report_path = os.path.join(output_directory, report)
 
+        logger.debug(f"Converting '{report_path}' to SARIF")
+
         # Related OpenAPI file.
         #
         # IMPORTANT: FOR GitHub Code Scanning, the OpenAPI file must be relative to the repository root,
         # and can't start with: /github/workspace
         openapi_file = report.replace(".audit-report.json", "")
 
+        logger.debug(f"Using '{openapi_file}' as input OpenAPI file for the SARIF generator")
+
         # SARIF file name
         sarif_file = f"{os.path.splitext(os.path.basename(report_path))[0]}.sarif"
+
+        logger.debug(f"Using '{sarif_file}' as output SARIF file")
 
         cmd = [
             "42ctl",
@@ -320,13 +348,17 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
 
             sarif_reports.append(sarif_file)
         except ExecutionError as e:
-            display_header("Convert to SARIF command failed", str(e))
+            logger.error(display_header("Convert to SARIF command failed", str(e)))
             continue
 
         #
         # Upload to GitHub code scanning
         #
+        logger.debug(
+            f"Uploading SARIF file to GitHub code scanning is { 'enabled' if running_config.upload_to_code_scanning else 'disabled' }"
+        )
         if running_config.upload_to_code_scanning:
+            logger.info(f"Uploading '{sarif_file}' to GitHub code scanning")
             upload_sarif(
                 github_token=running_config.github_token,
                 github_repository=running_config.github_repository,
@@ -335,18 +367,30 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
                 sarif_file_path=sarif_file
             )
 
+        logger.debug(
+            f"Enforce security issues is { 'enabled' if running_config.enforce else 'disabled' }"
+        )
         if running_config.enforce:
+            logger.info(f"Checking for security issues in '{sarif_file}'")
 
             ## If enforce is set to false, we'll fail if security issues were found
             found, issues = is_security_issues_found(sarif_file)
+
+            logger.info(f"Security issues found: {found}")
+
             if found:
-                display_header("Security issues found", f"{issues} issues found")
+                logger.info(display_header("Security issues found", f"{issues} issues found"))
                 sys.exit(1)
 
     #
     # Merge SARIF files
     #
+    logger.debug(
+        f"Merging SARIF files is { 'enabled' if running_config.sarif_report else 'disabled' }"
+    )
     if running_config.sarif_report:
+        logger.info(f"Merging SARIF files into '{running_config.sarif_report}'")
+
         cmd = [
             "42ctl",
             "audit",
@@ -360,7 +404,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         try:
             execute(cmd)
         except ExecutionError as e:
-            display_header("Merge SARIF files command failed", str(e))
+            logger.error(display_header("Merge SARIF files command failed", str(e)))
             exit(1)
 
 
@@ -368,6 +412,11 @@ def main():
     binary = get_binary_path()
     current_dir = os.getcwd()
     running_config = get_running_configuration()
+
+    if running_config.log_level == "DEBUG":
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
 
     # Run discovery
     discovery_run(running_config, current_dir, binary)
