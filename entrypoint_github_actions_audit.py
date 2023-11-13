@@ -351,13 +351,17 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
 
         logger.debug(f"Converting '{report_path}' to SARIF")
 
-        # Related OpenAPI file.
+        # Load metadata
         #
         # IMPORTANT: FOR GitHub Code Scanning, the OpenAPI file must be relative to the repository root,
         # and can't start with: /github/workspace
-        openapi_file = report.replace(".audit-report.json", "")
+        #
+        metadata_path = report_path.replace(".audit-report.json", ".metadata.json")
 
-        logger.debug(f"Using '{openapi_file}' as input OpenAPI file for the SARIF generator")
+        with open(metadata_path, "r") as f:
+            metadata = json.load(f)
+
+        logger.debug(f"Using '{metadata['openapi_file']}' as input OpenAPI file for the SARIF generator")
 
         # SARIF file name
         sarif_file = f"{os.path.splitext(os.path.basename(report_path))[0]}.sarif"
@@ -371,7 +375,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             "sarif",
             "convert",
             "-r", report_path,
-            "-a", openapi_file,
+            "-a", metadata['openapi_file'],
             "-o", sarif_file
         ]
 
