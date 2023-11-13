@@ -11,7 +11,7 @@ import platform
 import subprocess
 import urllib.request
 
-from typing import Tuple
+from typing import Tuple, Optional
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -80,6 +80,19 @@ RunningConfiguration:
                 exit(1)
 
 
+def extract_audit_log_text(audit_logs: dict) -> str:
+    """
+    Extract the audit log text from the audit logs
+
+    :param audit_logs: Audit logs
+    :return: Audit log text
+    """
+    try:
+        return audit_logs["audit_log"]
+    except KeyError:
+        return ""
+
+
 def is_security_issues_found(sarif_report: str) -> Tuple[bool, int]:
     """
     Check if security issues were found in the SARIF report.
@@ -110,14 +123,16 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
         with open(sarif_file_path, 'rb') as f:
             zipped_sarif = base64.b64encode(gzip.compress(f.read())).decode()
     except FileNotFoundError:
-        logger.error(display_header("SARIF file not found", f"Unable to upload SARIF file to GitHub code scanning: {os.path.abspath(sarif_file_path)} not found"))
+        logger.error(display_header("SARIF file not found",
+                                    f"Unable to upload SARIF file to GitHub code scanning: {os.path.abspath(sarif_file_path)} not found"))
         exit(1)
 
     # Extract owner and repo from the provided repository
     try:
         owner, repo = github_repository.split('/')
     except ValueError:
-        logger.error(display_header("Invalid repository", f"Unable to upload SARIF file to GitHub code scanning: {github_repository} is not a valid repository"))
+        logger.error(display_header("Invalid repository",
+                                    f"Unable to upload SARIF file to GitHub code scanning: {github_repository} is not a valid repository"))
         exit(1)
 
     # Current directory as a URL (approximation)
@@ -158,7 +173,7 @@ def display_header(title: str, text: str):
 """
 
 
-def execute(command: str | list, verbose: bool = False):
+def execute(command: str | list, capture_output: bool = False) -> Optional[str]:
     if type(command) is str:
         cmd = command.split(" ")
     else:
@@ -177,11 +192,12 @@ def execute(command: str | list, verbose: bool = False):
 
         raise ExecutionError("\n".join(message))
 
-    if verbose:
-        if result.stdout:
-            print(result.stdout.decode())
+    if capture_output:
+        return result.stdout.decode()
 
-    return result
+    # Scan write in stdout an JSON-like object. We need to parse it to get the results
+    if result.stdout:
+        return result.stdout.decode()
 
 
 def get_binary_path() -> str:
@@ -304,10 +320,20 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
 
     try:
 
-        execute(audit_cmd, True)
+        audit_response = execute(audit_cmd, True)
     except ExecutionError as e:
-        display_header("Audit command failed", str(e))
+        logger.error(display_header("Audit command failed", str(e)))
+        print("XXXX")
         exit(1)
+
+    # Audit log is a JSON-like object. We need to parse it to get the results
+    try:
+        audit_logs: dict = json.loads(audit_response)
+    except json.JSONDecodeError as e:
+        logger.error(display_header("Unable to parse audit logs", str(e)))
+        exit(1)
+
+    # Show, only in debug, audit logs
 
     #
     # Convert to SARIF
@@ -369,7 +395,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         # Upload to GitHub code scanning
         #
         logger.debug(
-            f"Uploading SARIF file to GitHub code scanning is { 'enabled' if running_config.upload_to_code_scanning else 'disabled' }"
+            f"Uploading SARIF file to GitHub code scanning is {'enabled' if running_config.upload_to_code_scanning else 'disabled'}"
         )
         if running_config.upload_to_code_scanning:
             logger.info(f"Uploading '{sarif_file}' to GitHub code scanning")
@@ -382,7 +408,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
             )
 
         logger.debug(
-            f"Enforce security issues is { 'enabled' if running_config.enforce else 'disabled' }"
+            f"Enforce security issues is {'enabled' if running_config.enforce else 'disabled'}"
         )
         if running_config.enforce:
             logger.info(f"Checking for security issues in '{sarif_file}'")
@@ -400,7 +426,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
     # Merge SARIF files
     #
     logger.debug(
-        f"Merging SARIF files is { 'enabled' if running_config.sarif_report else 'disabled' }"
+        f"Merging SARIF files is {'enabled' if running_config.sarif_report else 'disabled'}"
     )
     if running_config.sarif_report:
         logger.info(f"Merging SARIF files into '{running_config.sarif_report}'")
