@@ -57,12 +57,6 @@ Default is `false`.
 Converts the audit raw JSON format to SARIF and saves the results into a specified file.
 If not present, the SARIF report is not generated.
 
-### `export-as-pdf`
-
-Exports a summary of the audit reports as PDF.
-
-If not present, the PDF report is not generated.
-
 ## Examples
 
 ### Single step example
@@ -76,7 +70,6 @@ A typical new step in an existing workflow would look like this:
         	upload-to-code-scanning: true
         	enforce-sqg: false
           sarif-report: 42Crunch_AuditReport_${{ github.run_id }}.SARIF
-          export-as-pdf: audit-report-${{ github.run_id }}.pdf
           log-level: info
 ```
 
