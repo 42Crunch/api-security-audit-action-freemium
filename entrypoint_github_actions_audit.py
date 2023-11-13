@@ -225,12 +225,15 @@ def get_binary_path() -> str:
 
 
 def loading_metadata(report_path: str) -> dict:
+
+    logger.debug(f"Loading metadata from '{report_path}'")
     # Getting hash from audit report
     with open(report_path, "r") as f:
         report_hash = hashlib.sha256(f.read().encode("utf-8")).hexdigest()
 
     # Building metadata file path
     metadata_path = f"{report_path}.{report_hash}.metadata.json"
+    logger.debug(f"Metadata file path: '{metadata_path}'")
 
     # Loading metadata file
     with open(metadata_path, "r") as f:
