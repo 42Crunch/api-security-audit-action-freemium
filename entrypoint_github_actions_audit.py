@@ -441,6 +441,9 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
     if running_config.sarif_report:
         logger.info(f"Merging SARIF files into '{running_config.sarif_report}'")
 
+        for s in sarif_reports:
+            logger.debug(f" - {s}")
+
         cmd = [
             "42ctl",
             "audit",
