@@ -259,16 +259,16 @@ def get_running_configuration() -> RunningConfiguration:
     data_enrich = _to_bool(os.getenv("INPUT_DATA-ENRICH", "false"))
     upload_to_code_scanning = _to_bool(os.getenv("INPUT_UPLOAD-TO-CODE-SCANNING", "false"))
 
-    log_level = os.getenv("INPUT_LOG-LEVEL", "INFO")
+    log_level = os.getenv("INPUT_LOG-LEVEL", "info")
     if log_level is None:
-        log_level = "INFO"
-    elif log_level.upper() not in ["FAIL", "ERROR", "WARN", "INFO", "DEBUG"]:
-        log_level = "INFO"
+        log_level = "info"
+    elif log_level.lower() not in ["fail", "error", "warn", "info", "debug"]:
+        log_level = "info"
     else:
-        log_level = log_level.upper()
+        log_level = log_level.lower()
 
     return RunningConfiguration(
-        log_level=log_level,
+        log_level=log_level.lower(),
         data_enrich=data_enrich,
         enforce=enforce,
         sarif_report=_none_or_empty(os.getenv("INPUT_SARIF-REPORT", None)),
@@ -455,7 +455,7 @@ def main():
     current_dir = os.getcwd()
     running_config = get_running_configuration()
 
-    if running_config.log_level == "DEBUG":
+    if running_config.log_level == "debug":
         logging.basicConfig(level=logging.DEBUG, format="[DEBUG]<*> %(message)s")
     else:
         logging.basicConfig(level=logging.INFO, format="[*] %(message)s")
