@@ -113,3 +113,11 @@ jobs:
           path: 42Crunch_AuditReport_${{ github.run_id }}.SARIF
           if-no-files-found: error
 ```
+## Support
+
+The action is maintained by the 42Crunch ecosystems team. If you run into an issue, or have a question not answered here, you can create a support ticket at [support.42crunch.com](https://support.42crunch.com/) and we will be happy to help.
+
+When reporting an issue, do include:
+- The version of the GitHub action
+- Relevant logs and error messages
+- Steps to reproduce the issue
