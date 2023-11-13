@@ -287,6 +287,8 @@ def get_running_configuration() -> RunningConfiguration:
 def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries: str):
     output_directory = os.path.join(base_dir, uuid.uuid4().hex)
 
+    logger.debug(f"Running configuration: {running_config}")
+
     #
     # Run 42Crunch cli audit
     #
@@ -325,8 +327,6 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         logger.error(display_header("Audit command failed", str(e)))
         print("XXXX")
         exit(1)
-
-    print(audit_response)
 
     # Audit log is a JSON-like object. We need to parse it to get the results
     # try:
