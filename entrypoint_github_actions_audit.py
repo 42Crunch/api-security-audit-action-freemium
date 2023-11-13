@@ -381,6 +381,7 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         sarif_file = f"{report_path}.sarif"
 
         logger.debug(f"Using '{sarif_file}' as output SARIF file")
+        logger.debug(f"Using '{metadata['openapi_file']}' as input OpenAPI file for the SARIF generator")
 
         cmd = [
             "42ctl",
