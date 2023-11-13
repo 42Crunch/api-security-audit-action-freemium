@@ -64,23 +64,6 @@ RunningConfiguration:
         if self.log_level:
             self.log_level = self.log_level.lower()
 
-        if self.github_organization and self.github_repository_owner:
-            self.github_repository = f"{self.github_organization}/{self.github_repository_owner}"
-
-        elif self.github_repository:
-            try:
-                split = self.github_repository.split("/")
-
-                if len(split) == 2:
-                    self.github_organization = split[0]
-                    self.github_repository_owner = split[1]
-                else:
-                    raise ValueError("Invalid repository name")
-            except ValueError:
-                logger.error(display_header("Invalid repository name", f"Unable to parse repository name: {self.github_repository}"))
-                exit(1)
-
-
 def extract_audit_log_text(audit_logs: dict) -> str:
     """
     Extract the audit log text from the audit logs
@@ -138,7 +121,6 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
 
     # Current directory as a URL (approximation)
     checkout_uri = f"file://{os.getcwd()}"
-    print(github_token.upper())
 
     # Construct the request
     url = f"https://api.github.com/repos/{owner}/{repo}/code-scanning/sarifs"
