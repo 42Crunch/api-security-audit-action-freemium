@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import hashlib
 import os
 import sys
 import gzip
@@ -115,7 +115,8 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
     # Extract owner and repo from the provided repository
     if "/" not in github_repository:
         logger.error(display_header("Invalid repository",
-                                    f"Unable to upload SARIF file to GitHub code scanning: '{github_repository}' is not a valid repository"))
+                                    f"Unable to upload SARIF file to GitHub code scanning: '{github_repository}' is not a valid "
+                                    f"repository"))
         exit(1)
 
     # Current directory as a URL (approximation)
@@ -221,6 +222,19 @@ def get_binary_path() -> str:
     _check_binary_exists(binary_path)
 
     return binary_path
+
+
+def loading_metadata(report_path: str) -> dict:
+    # Getting hash from audit report
+    with open(report_path, "r") as f:
+        report_hash = hashlib.sha256(f.read().encode("utf-8")).hexdigest()
+
+    # Building metadata file path
+    metadata_path = f"{report_path}.{report_hash}.metadata.json"
+
+    # Loading metadata file
+    with open(metadata_path, "r") as f:
+        return json.load(f)
 
 
 def get_running_configuration() -> RunningConfiguration:
@@ -356,15 +370,12 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         # IMPORTANT: FOR GitHub Code Scanning, the OpenAPI file must be relative to the repository root,
         # and can't start with: /github/workspace
         #
-        metadata_path = report_path.replace(".audit-report.json", ".metadata.json")
-
-        with open(metadata_path, "r") as f:
-            metadata = json.load(f)
+        metadata = loading_metadata(report_path)
 
         logger.debug(f"Using '{metadata['openapi_file']}' as input OpenAPI file for the SARIF generator")
 
         # SARIF file name
-        sarif_file = f"{os.path.splitext(os.path.basename(report_path))[0]}.sarif"
+        sarif_file = f"{report_path}.sarif"
 
         logger.debug(f"Using '{sarif_file}' as output SARIF file")
 
