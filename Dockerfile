@@ -1,4 +1,4 @@
-FROM cr0hn/sample-an-testing-for-documentation:v1.0.8
+FROM 42crunch/github-api-security-audit-base-image:v1.0.0
 
 #
 # Specific instructions for GitHub
