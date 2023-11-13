@@ -64,6 +64,7 @@ RunningConfiguration:
         if self.log_level:
             self.log_level = self.log_level.lower()
 
+
 def extract_audit_log_text(audit_logs: dict) -> str:
     """
     Extract the audit log text from the audit logs
@@ -112,9 +113,7 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
         exit(1)
 
     # Extract owner and repo from the provided repository
-    try:
-        owner, repo = github_repository.split('/')
-    except ValueError:
+    if "/" not in github_repository:
         logger.error(display_header("Invalid repository",
                                     f"Unable to upload SARIF file to GitHub code scanning: {github_repository} is not a valid repository"))
         exit(1)
@@ -123,7 +122,7 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
     checkout_uri = f"file://{os.getcwd()}"
 
     # Construct the request
-    url = f"https://api.github.com/repos/{owner}/{repo}/code-scanning/sarifs"
+    url = f"https://api.github.com/repos/{github_repository}/code-scanning/sarifs"
     headers = {
         "Authorization": f"Bearer {github_token}",
         "Accept": "application/vnd.github+json",
@@ -137,6 +136,8 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
         "checkout_uri": checkout_uri
     }
     req = urllib.request.Request(url, headers=headers, data=json.dumps(data).encode())
+
+    logger.debug(f"Uploading SARIF file to GitHub code scanning: {url}")
 
     # Send the request
     try:
