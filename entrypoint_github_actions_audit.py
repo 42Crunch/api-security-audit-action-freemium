@@ -63,7 +63,22 @@ RunningConfiguration:
         if self.log_level:
             self.log_level = self.log_level.lower()
 
-        #self.github_repository = self.github_repository.split("/")[1] # trim owner from repo name
+        if self.github_organization and self.github_repository_owner:
+            self.github_repository = f"{self.github_organization}/{self.github_repository_owner}"
+
+        elif self.github_repository:
+            try:
+                split = self.github_repository.split("/")
+
+                if len(split) == 2:
+                    self.github_organization = split[0]
+                    self.github_repository_owner = split[1]
+                else:
+                    raise ValueError("Invalid repository name")
+            except ValueError:
+                logger.error(display_header("Invalid repository name", f"Unable to parse repository name: {self.github_repository}"))
+                exit(1)
+
 
 def is_security_issues_found(sarif_report: str) -> Tuple[bool, int]:
     """
@@ -271,11 +286,10 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         "--github-user", running_config.github_repository_owner,
         "--github-org", running_config.github_organization,
         "--log-level", running_config.log_level,
-        "--github-repo", running_config.github_repository.split("/")[1] # trim owner from repo name
-        #"--github-repo", running_config.github_repository,
+        "--github-repo", running_config.github_repository
     ]
 
-    logger.info(f"Running audit command: {audit_cmd}")
+    logger.info(f"Running audit")
 
     # Show, only in debug, audit parameters
     logger.debug(f"Using GitHub user: {running_config.github_repository_owner}")
@@ -414,9 +428,9 @@ def main():
     running_config = get_running_configuration()
 
     if running_config.log_level == "DEBUG":
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, format="[DEBUG]<*> %(message)s")
     else:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.INFO, format="[*] %(message)s")
 
     # Run discovery
     discovery_run(running_config, current_dir, binary)
