@@ -9,6 +9,7 @@ import base64
 import logging
 import platform
 import subprocess
+import urllib.error
 import urllib.request
 
 from typing import Tuple, Optional
@@ -158,9 +159,12 @@ def upload_sarif(github_token, github_repository, github_sha, ref, sarif_file_pa
     # Send the request
     try:
         with urllib.request.urlopen(req) as response:
-            response = response.read().decode()
+            response.read().decode()
+    except urllib.error.HTTPError as e:
+        logger.error(display_header(f"Unable to upload SARIF file to GitHub code scanning: {e.code}. {e.reason}", e.read().decode()))
+        exit(1)
     except Exception as e:
-        logger.error(display_header(f"Unable to upload SARIF file to GitHub code scanning: {str(e)}.\n\n{response}"))
+        logger.error(display_header(f"Unable to upload SARIF file to GitHub code scanning: {str(e)}"))
         exit(1)
 
 
