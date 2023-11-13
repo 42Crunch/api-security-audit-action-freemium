@@ -326,12 +326,14 @@ def discovery_run(running_config: RunningConfiguration, base_dir: str, binaries:
         print("XXXX")
         exit(1)
 
+    print(audit_response)
+
     # Audit log is a JSON-like object. We need to parse it to get the results
-    try:
-        audit_logs: dict = json.loads(audit_response)
-    except json.JSONDecodeError as e:
-        logger.error(display_header("Unable to parse audit logs", str(e)))
-        exit(1)
+    # try:
+    #     audit_logs: dict = json.loads(audit_response)
+    # except json.JSONDecodeError as e:
+    #     logger.error(display_header("Unable to parse audit logs", str(e)))
+    #     exit(1)
 
     # Show, only in debug, audit logs
 
