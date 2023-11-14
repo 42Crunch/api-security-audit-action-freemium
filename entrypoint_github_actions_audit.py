@@ -304,8 +304,10 @@ def main():
     # -------------------------------------------------------------------------
     # Setup logging
     # -------------------------------------------------------------------------
-    # logging.basicConfig(level=running_config.log_level.upper())
-    setup_logger(logger, running_config.log_level)
+    if running_config.log_level == "debug":
+        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
+    else:
+        logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     # -------------------------------------------------------------------------
     # Run discovery
