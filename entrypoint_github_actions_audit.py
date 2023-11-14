@@ -25,6 +25,7 @@ class RunningConfiguration:
     upload_to_code_scanning: bool = False
 
     sarif_report: str = None
+    audit_reports_dir: str = None
     export_as_pdf: str = None
 
     # Internal parameters
@@ -46,7 +47,8 @@ class RunningConfiguration:
                 "upload-to-code-scanning": "bool",
                 "sarif-report": "str",
                 "export-as-pdf": "str",
-                "token": "str"
+                "token": "str",
+                "audit-reports-dir": "str",
             },
             envs={
                 "github_repository": "str",
@@ -62,6 +64,7 @@ class RunningConfiguration:
             enforce=config["enforce-sqg"],
             upload_to_code_scanning=config["upload-to-code-scanning"],
             sarif_report=config["sarif-report"],
+            audit_reports_dir=config["audit-reports-dir"],
             export_as_pdf=config["export-as-pdf"],
 
             github_token=config["token"],
@@ -86,6 +89,7 @@ class RunningConfiguration:
         return f"""
 RunningConfiguration:
     log_level: {self.log_level}
+    audit_reports_dir: {self.audit_reports_dir}
     data_enrich: {self.data_enrich}
     enforce_sqgl: {self.enforce}
     upload_to_code_scanning: {self.upload_to_code_scanning}
@@ -106,7 +110,12 @@ RunningConfiguration:
 
 def discovery_run(running_config: RunningConfiguration, binaries: str):
     base_dir = os.getcwd()
-    output_directory = os.path.join(base_dir, uuid.uuid4().hex)
+
+    if running_config.audit_reports_dir:
+        output_directory = running_config.audit_reports_dir
+
+    else:
+        output_directory = os.path.join(base_dir, uuid.uuid4().hex)
 
     #
     # Run 42Crunch cli audit
@@ -144,16 +153,6 @@ def discovery_run(running_config: RunningConfiguration, binaries: str):
     except ExecutionError as e:
         logger.error(display_header("Audit command failed", str(e)))
         exit(1)
-
-    # TODO:
-    # Audit log is a JSON-like object. We need to parse it to get the results
-    # try:
-    #     audit_logs: dict = json.loads(audit_response)
-    # except json.JSONDecodeError as e:
-    #     logger.error(display_header("Unable to parse audit logs", str(e)))
-    #     exit(1)
-
-    # Show, only in debug, audit logs
 
     #
     # Convert to SARIF

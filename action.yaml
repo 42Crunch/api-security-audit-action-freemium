@@ -17,6 +17,9 @@ inputs:
   sarif-report:
     description: "SARIF report"
     required: false
+  audit-reports-dir:
+    description: "Audit reports directory"
+    required: false
   token:
     description: "Personal Access Token"
     default: ${{ github.token }}
