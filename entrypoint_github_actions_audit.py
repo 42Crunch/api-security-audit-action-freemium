@@ -305,7 +305,7 @@ def main():
     # Setup logging
     # -------------------------------------------------------------------------
     if running_config.log_level == "debug":
-        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
+        logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
     else:
         logging.basicConfig(level=logging.INFO, format="%(message)s")
 
