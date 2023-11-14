@@ -195,7 +195,7 @@ def discovery_run(running_config: RunningConfiguration, binaries: str):
         logger.info(f"Audited '{openapi_file}'")
         logger.info(f"Issues Found: {report_obj.total_issues}")
         logger.info(f"Global score: {report_obj.score}")
-        logger.info(f"")
+        logger.info(f"---")
 
         logger.debug(f"Using '{openapi_file}' as input OpenAPI file for the SARIF generator")
 
