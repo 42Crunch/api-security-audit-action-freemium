@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from xliic_sdk.audit import load_metadata
 from xliic_sdk.audit.report import AuditReport
 from xliic_sdk.helpers import get_binary_path, execute, ExecutionError
-from xliic_sdk.vendors import github_running_configuration, display_header, setup_logger, upload_sarif
+from xliic_sdk.vendors import github_running_configuration, display_header, upload_sarif
 
 logger = logging.getLogger(__name__)
 
@@ -195,6 +195,7 @@ def discovery_run(running_config: RunningConfiguration, binaries: str):
         logger.info(f"Audited '{openapi_file}'")
         logger.info(f"Issues Found: {report_obj.total_issues}")
         logger.info(f"Global score: {report_obj.score}")
+        logger.info(f"")
 
         logger.debug(f"Using '{openapi_file}' as input OpenAPI file for the SARIF generator")
 
