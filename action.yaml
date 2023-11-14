@@ -13,14 +13,10 @@ inputs:
   log-level:
     description: "Log level"
     required: false
-    default: "info"
+    default: "INFO"
   sarif-report:
     description: "SARIF report"
     required: false
-  export-as-pdf:
-    description: "Export as PDF"
-    required: false
-    default: "false"
   token:
     description: "Personal Access Token"
     default: ${{ github.token }}
