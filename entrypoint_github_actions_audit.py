@@ -286,7 +286,7 @@ def discovery_run(running_config: RunningConfiguration, binaries: str):
             sarif_file_path=sarif_report_name
         )
 
-    logger.info("Successfully uploaded results to Code Scanning")
+        logger.info("Successfully uploaded results to Code Scanning")
 
 
 def main():
