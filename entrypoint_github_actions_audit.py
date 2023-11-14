@@ -304,7 +304,7 @@ def main():
     # -------------------------------------------------------------------------
     # Setup logging
     # -------------------------------------------------------------------------
-    logging.basicConfig(level=running_config.log_level.upper())
+    # logging.basicConfig(level=running_config.log_level.upper())
     setup_logger(logger, running_config.log_level)
 
     # -------------------------------------------------------------------------
