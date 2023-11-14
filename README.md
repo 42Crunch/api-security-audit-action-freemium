@@ -13,7 +13,7 @@ You can use this action in the following scenarios:
 
 By default, this action will:
 
-1. Look for any `.json` and `.yaml` or ``.yml` files in the repository.
+1. Look for any `.json` and `.yaml` or `.yml` files in the repository.
 2. Pick the files that use OpenAPI (a.k.a Swagger ) 2.0 or 3.0x schemas.
 3. Perform security audit on each OpenAPI definition.
 
@@ -34,7 +34,9 @@ jobs:
 ...
 ```
 
-### `enforce-sqg`
+### `enforce-sqg` 
+
+*Coming soon!*
 
 If set to `true`, the task returns a failure when security quality gates (SQG) criteria have failed.
 If set to `false`, the action reports SQG failures scenarios without enforcing them, giving a grace period to development teams before breaking builds.
@@ -48,7 +50,7 @@ Default is `INFO`.
 
 ### `data-enrich`
 
-Enrichs the OpenAPI file leveraging 42Crunch default data dictionary. For each property with a standard format (such as uuid or date-time), patterns and constraints are added to the OpenAPI file before it is audited.
+Enrichs the OpenAPI file leveraging 42Crunch default [data dictionary](https://docs.42crunch.com/latest/content/concepts/data_dictionaries.htm). For each property with a standard format (such as uuid or date-time), patterns and constraints are added to the OpenAPI file before it is audited.
 
 Default is `false`.
 
@@ -113,6 +115,14 @@ jobs:
           path: 42Crunch_AuditReport_${{ github.run_id }}.SARIF
           if-no-files-found: error
 ```
+## Viewing SARIF Files in VisualStudio Code
+
+Microsoft provides a [SARIF viewer extension](https://marketplace.visualstudio.com/items?itemName=MS-SarifVSCode.sarif-viewer) you can install into VisualStudio code. Used in conjunction with [42Crunch extension](https://marketplace.visualstudio.com/items?itemName=42Crunch.vscode-openapi), it helps you view issues found by 42Crunch Audit within the OpenAPI file.
+
+The SARIF extension, once connected to GitHub can directly display the issues from GitHub Code Scanning.
+
+![](./graphics/SARIFinVSCode.png)
+
 ## Support
 
 The action is maintained by the 42Crunch ecosystems team. If you run into an issue, or have a question not answered here, you can create a support ticket at [support.42crunch.com](https://support.42crunch.com/) and we will be happy to help.
