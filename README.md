@@ -123,6 +123,14 @@ The SARIF extension, once connected to GitHub can directly display the issues fr
 
 ![](./graphics/SARIFinVSCode.png)
 
+## Limitations
+
+The freemium version lets you fully test 42Crunch audit features. It does have usage limitations:
+
+- Organizations on freemium service are limited to 25 audits per repository, with a maximum of three repositories per GitHub organization. The limit is reset every calendar month.
+- Only the default security quality gates (SQGs) are included.
+- Only the standard data dictionary is included.
+
 ## Support
 
 The action is maintained by the 42Crunch ecosystems team. If you run into an issue, or have a question not answered here, you can create a support ticket at [support.42crunch.com](https://support.42crunch.com/) and we will be happy to help.
