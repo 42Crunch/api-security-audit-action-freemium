@@ -149,6 +149,9 @@ def discovery_run(running_config: RunningConfiguration, binaries: str):
 
     try:
 
+        logger.debug(f"Executing audit command:")
+        logger.debug(f"{' '.join(audit_cmd)}")
+
         stdout_response, stderr_response = execute(audit_cmd, True)
     except ExecutionError as e:
         logger.error(display_header("Audit command failed", str(e)))
@@ -212,6 +215,9 @@ def discovery_run(running_config: RunningConfiguration, binaries: str):
             "-a", openapi_file,
             "-o", sarif_file
         ]
+
+        logger.debug(f"Executing convert to SARIF command:")
+        logger.debug(f"{' '.join(cmd)}")
 
         try:
             execute(cmd)
