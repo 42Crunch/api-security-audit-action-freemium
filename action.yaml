@@ -1,5 +1,5 @@
 # action.yml
-name: "42Crunch REST API Static Security Testing - Freemium - Preview"
+name: "42Crunch REST API Static Security Testing - Freemium"
 description: "The REST API Static Security Testing action adds automatic static API security testing (SAST) to your workflows"
 inputs:
   upload-to-code-scanning:
