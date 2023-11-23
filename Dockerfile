@@ -1,4 +1,4 @@
-FROM 42crunch/github-api-security-base-image:v1.0.0
+FROM 42crunch/github-api-security-base-image:v1.0.1
 
 #
 # Specific instructions for GitHub
