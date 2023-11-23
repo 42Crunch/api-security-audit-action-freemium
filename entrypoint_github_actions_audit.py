@@ -119,7 +119,7 @@ RunningConfiguration:
 
 
 def discovery_run(running_config: RunningConfiguration):
-    upload_sarif(1, 2, 3, 4)
+
     if running_config.audit_reports_dir:
         output_directory = running_config.audit_reports_dir
 
