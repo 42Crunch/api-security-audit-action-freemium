@@ -9,12 +9,13 @@ from dataclasses import dataclass
 from xliic_sdk.audit import load_metadata
 from xliic_sdk.helpers import ExecutionError
 from xliic_sdk.audit.report import AuditReport
+from xliic_cli.audit.reports.pdf.convert_to_pdf import create_html_report, RunningConfig as PDFRunningConfig
 from xliic_cli.audit.reports.sarif.merge_sarif.app import merge_sarif_files
 from xliic_cli.audit.reports.sarif.convert_to_sarif.app import convert_to_sarif
 from xliic_cli.audit.run.local_run import run_audit_locally, AuditExecutionConfig
 from xliic_sdk.vendors import github_running_configuration, display_header, upload_sarif
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("42crunch-audit")
 
 
 @dataclass
@@ -145,16 +146,20 @@ def discovery_run(running_config: RunningConfiguration):
 
     )
 
-    reports = {}
+    sqgs = {}
+    quotas = {}
 
     try:
-        for msg, report_path in run_audit_locally(
+        for quota_msg, report_path, sqg, in run_audit_locally(
                 open_api_file_or_path=running_config.input_openapi_path,
                 output_file_or_dir=output_directory,
                 include_metadata=True,
                 audit_config=execution_config
         ):
-            reports[os.path.basename(report_path)] = msg
+            file_name = os.path.basename(report_path)
+
+            sqgs[file_name] = sqg
+            quotas[file_name] = quota_msg
     except Exception as e:
         logger.error(f"[!] {str(e)}")
         exit(1)
@@ -175,6 +180,7 @@ def discovery_run(running_config: RunningConfiguration):
     # Convert to SARIF
     #
     sarif_reports = []
+    audit_reports = []
     for report in os.listdir(output_directory):
 
         # Try to locate report files
@@ -183,6 +189,9 @@ def discovery_run(running_config: RunningConfiguration):
 
         # Report file found
         report_path = os.path.join(output_directory, report)
+
+        # Add report to list
+        audit_reports.append(report_path)
 
         logger.debug(f"Converting '{report_path}' to SARIF")
 
@@ -200,13 +209,34 @@ def discovery_run(running_config: RunningConfiguration):
         # User log info
         report_obj = AuditReport.from_file(report_path)
 
-        logger.info(f"Audited '{openapi_file}'")
-        logger.info(f"Global score: {report_obj.score}")
-        logger.info(f"Issues Found: {report_obj.total_issues}")
+        #
+        # Show audit results
+        #
+        # We se print instead of logger.info because we want to show this information in the GitHub Action output
 
-        # Display Quotas
-        logger.info(f"\n{reports[report]}\n\n")
-        # logger.info(f"---")
+        ## Global score
+        print(f"Audited '{openapi_file}'")
+        print(f"Global score: {report_obj.score} (security {report_obj.security_score}/30, data {report_obj.data_score}/70)")
+        print(f"Issues Found: {report_obj.total_issues}")
+
+        ## Display sqg score
+        if running_config.enforce:
+            print()
+            print("Checking security quality gates")
+
+            sqg = sqgs[report]
+
+            if sqg:
+                print(f'    The API failed the security quality gate "Default Audit SQG"')
+
+                for rule in sqg.sqg_blocking_rules:
+                    print(f"    - {rule}")
+
+        ## Display Quotas
+        print(f"\n{quotas[report]}\n\n")
+
+        ## Display separator
+        print("------------------------------------------------------------------------\n")
 
         logger.debug(f"Using '{openapi_file}' as input OpenAPI file for the SARIF generator")
 
@@ -256,7 +286,34 @@ def discovery_run(running_config: RunningConfiguration):
             sarif_file_path=sarif_report_name
         )
 
-        logger.info("Successfully uploaded results to Code Scanning")
+        logger.debug("Successfully uploaded results to Code Scanning")
+
+    #
+    # Make PDF report
+    #
+    if running_config.export_as_pdf:
+        logger.debug(f"Generating PDF report '{running_config.export_as_pdf}'")
+
+        config = PDFRunningConfig(
+            collection_id=None,
+            api_id=None,
+            report_files=audit_reports,
+            output_file=running_config.export_as_pdf,
+            abort_on_error=False,
+            client_email=None,
+            severity="low",
+            source="GitHub Actions"
+        )
+
+        create_html_report(config, audit_reports)
+
+    #
+    # Check if pipeline should fail
+    #
+    ## If any SQG has to fail, exit with error
+    for sqg in sqgs.values():
+        if sqg.has_to_fail(running_config.enforce):
+            exit(1)
 
 
 def main():
@@ -270,10 +327,18 @@ def main():
     # -------------------------------------------------------------------------
     # Setup logging
     # -------------------------------------------------------------------------
+
+    ## Logger handlers for console
+    console = logging.StreamHandler()
+
     if running_config.log_level == "debug":
-        logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
+        logger.setLevel(logging.DEBUG)
+        console.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
     else:
-        logging.basicConfig(level=logging.INFO, format="%(message)s")
+        logger.setLevel(logging.INFO)
+        console.setFormatter(logging.Formatter("%(message)s"))
+
+    logger.addHandler(console)
 
     # -------------------------------------------------------------------------
     # Run discovery

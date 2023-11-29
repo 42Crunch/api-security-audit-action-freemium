@@ -41,11 +41,11 @@ def main():
     arg_parser = argparse.ArgumentParser(description='Audit Freemium Action Tester')
 
     # Map inputs to args
-    arg_parser.add_argument('--input-openapi-path', type=str, help='Openapi path', default=None)
-    arg_parser.add_argument('--input-log-level', type=str, help='Log level', default='debug')
-    arg_parser.add_argument('--input-data-enrich', type=bool, help='Data enrich', default=False)
-    arg_parser.add_argument('--input-enforce-sqg', type=bool, help='Enforce sqg', default=False)
-    arg_parser.add_argument('--input-upload-to-code-scanning', type=bool, help='Upload to code scanning', default=True)
+    arg_parser.add_argument('--input-openapi-path', type=str, help='Openapi path', default=None, required=True)
+    arg_parser.add_argument('--input-log-level', type=str, help='Log level', default='debug', choices=['debug', 'info', 'warn', 'error', 'critical'])
+    arg_parser.add_argument('--input-data-enrich', help='Data enrich', default=False, action='store_true')
+    arg_parser.add_argument('--input-enforce-sqg', help='Enforce sqg', default=False, action='store_true')
+    arg_parser.add_argument('--input-upload-to-code-scanning', help='Upload to code scanning', default=True, action='store_true')
     arg_parser.add_argument('--input-sarif-report', type=str, help='Sarif report', default=None)
     arg_parser.add_argument('--input-export-as-pdf', type=str, help='Export as pdf', default=None)
     arg_parser.add_argument('--input-token', type=str, help='Token', default=lambda: random_string(40))
