@@ -315,6 +315,7 @@ def discovery_run(running_config: RunningConfiguration):
     ## If any SQG has to fail, exit with error
     for sqg in sqgs.values():
         if sqg.has_to_fail(running_config.enforce):
+            print(f"The API failed the security quality gate 'Default Audit SQG'")
             exit(1)
 
 
