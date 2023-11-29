@@ -23,6 +23,9 @@ inputs:
   token:
     description: "Personal Access Token"
     default: ${{ github.token }}
+  export-as-pdf:
+    description: "To export the report as PDF, set this to value to a valid filename"
+    required: false
 
 branding:
   icon: "eye"
