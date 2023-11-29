@@ -159,7 +159,7 @@ def discovery_run(running_config: RunningConfiguration):
         ):
             file_name = os.path.basename(report_path)
 
-            sqgs[file_name] = sqg
+            sqgs[file_name] = report_path
             quotas[file_name] = quota_msg
             raw_audit_reports.append(report_path)
     except Exception as e:
