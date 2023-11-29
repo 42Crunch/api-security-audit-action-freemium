@@ -6,8 +6,8 @@ import logging
 
 from dataclasses import dataclass
 
-from xliic_sdk.audit import load_metadata
 from xliic_sdk.helpers import ExecutionError
+from xliic_sdk.audit import load_metadata_file
 from xliic_sdk.audit.report import AuditReport
 from xliic_cli.audit.reports.pdf.convert_to_pdf import create_html_report, RunningConfig as PDFRunningConfig
 from xliic_cli.audit.reports.sarif.merge_sarif.app import merge_sarif_files
@@ -119,6 +119,29 @@ RunningConfiguration:
             self.input_openapi_path = os.getcwd()
 
 
+def fix_path(path: str, prefix: str):
+    """
+    Fix paths
+
+    :param path: Path to fix
+    :param prefix: Prefix to remove
+
+    :return: Fixed path
+    """
+    found = path.find(prefix)
+
+    if found != -1:
+        p = path[found:]
+
+        if p.startswith("/"):
+            return p[1:]
+
+        return p
+
+    else:
+        return path
+
+
 def discovery_run(running_config: RunningConfiguration):
 
     if running_config.audit_reports_dir:
@@ -148,60 +171,37 @@ def discovery_run(running_config: RunningConfiguration):
 
     sqgs = {}
     quotas = {}
-    raw_audit_reports = []
+    reports = {}
 
     try:
-        for quota_msg, report_path, sqg, in run_audit_locally(
+        for quota_msg, report_path, report_metadata, sqg, in run_audit_locally(
                 open_api_file_or_path=running_config.input_openapi_path,
                 output_file_or_dir=output_directory,
                 include_metadata=True,
                 audit_config=execution_config
         ):
-            file_name = os.path.basename(report_path)
+            # Remove prefix from report path and report metadata until output directory
+            fixed_report_path = fix_path(report_path, output_directory)
+            fixed_report_metadata = fix_path(report_metadata, output_directory)
 
-            sqgs[file_name] = report_path
-            quotas[file_name] = quota_msg
-
-            # Fix report path, removing the /github/workspace prefix
-            raw_audit_reports.append(report_path.replace("/github/workspace/", ""))
+            sqgs[fixed_report_path] = sqg
+            quotas[fixed_report_path] = quota_msg
+            reports[fixed_report_path] = fixed_report_metadata
 
     except Exception as e:
         logger.error(f"[!] {str(e)}")
-        exit(1)
 
-    results_files = os.listdir(output_directory)
-
-    #
-    # Show, only in debug, Found reports
-    #
-    logger.debug(f"Analyzed {len(results_files)} files")
-    logger.debug(f"Reports are generated at: '{output_directory}'")
-    logger.debug(f"Found {len(results_files)} files in '{output_directory}'")
-    for report in results_files:
-        logger.debug(f" - {report}")
-    logger.debug(f"Converting the audit reports to SARIF")
 
     #
     # Convert to SARIF
     #
     sarif_reports = []
-    audit_reports = []
-    for report in raw_audit_reports:
+    for report, report_metadata in reports.items():
 
-        # Try to locate report files
-        if "audit-report" not in report or "metadata" in report:
-            continue
-
-        # Report file found
-        report_path = os.path.join(output_directory, report)
-
-        # Add report to list
-        audit_reports.append(report_path)
-
-        logger.debug(f"Converting '{report_path}' to SARIF")
+        logger.debug(f"Converting '{report}' to SARIF")
 
         # Load metadata
-        metadata = load_metadata(report_path)
+        metadata = load_metadata_file(report_metadata)
 
         #
         # IMPORTANT: FOR GitHub Code Scanning, the OpenAPI file must be relative to the repository root,
@@ -212,7 +212,7 @@ def discovery_run(running_config: RunningConfiguration):
         openapi_file = metadata.openapi_file.replace("/github/workspace/", "")
 
         # User log info
-        report_obj = AuditReport.from_file(report_path)
+        report_obj = AuditReport.from_file(report)
 
         #
         # Show audit results
@@ -246,11 +246,11 @@ def discovery_run(running_config: RunningConfiguration):
         logger.debug(f"Using '{openapi_file}' as input OpenAPI file for the SARIF generator")
 
         # SARIF file name
-        sarif_file = f"{report_path}.sarif"
+        sarif_file = f"{report}.sarif"
         logger.debug(f"Using '{sarif_file}' as output SARIF file")
 
         try:
-            convert_to_sarif(openapi_file, report_path, sarif_file)
+            convert_to_sarif(openapi_file, report, sarif_file)
         except ExecutionError as e:
             print(f"[!] {str(e)}")
             exit(1)
@@ -302,7 +302,7 @@ def discovery_run(running_config: RunningConfiguration):
         config = PDFRunningConfig(
             collection_id=None,
             api_id=None,
-            report_files=audit_reports,
+            report_files=list(reports.keys()),
             output_file=running_config.export_as_pdf,
             abort_on_error=False,
             client_email=None,
@@ -310,7 +310,7 @@ def discovery_run(running_config: RunningConfiguration):
             source="GitHub Actions"
         )
 
-        create_html_report(config, audit_reports)
+        create_html_report(config)
 
     #
     # Check if pipeline should fail
