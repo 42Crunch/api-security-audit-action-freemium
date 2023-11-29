@@ -148,6 +148,7 @@ def discovery_run(running_config: RunningConfiguration):
 
     sqgs = {}
     quotas = {}
+    raw_audit_reports = []
 
     try:
         for quota_msg, report_path, sqg, in run_audit_locally(
@@ -160,6 +161,7 @@ def discovery_run(running_config: RunningConfiguration):
 
             sqgs[file_name] = sqg
             quotas[file_name] = quota_msg
+            raw_audit_reports.append(report_path)
     except Exception as e:
         logger.error(f"[!] {str(e)}")
         exit(1)
@@ -181,7 +183,7 @@ def discovery_run(running_config: RunningConfiguration):
     #
     sarif_reports = []
     audit_reports = []
-    for report in os.listdir(output_directory):
+    for report in raw_audit_reports:
 
         # Try to locate report files
         if "audit-report" not in report or "metadata" in report:
@@ -233,10 +235,10 @@ def discovery_run(running_config: RunningConfiguration):
                     print(f"    - {rule}")
 
         ## Display Quotas
-        print(f"\n{quotas[report]}\n\n")
+        print(f"\n{quotas[report]}\n")
 
         ## Display separator
-        print("------------------------------------------------------------------------\n")
+        print("------------------------------------------------------------------------")
 
         logger.debug(f"Using '{openapi_file}' as input OpenAPI file for the SARIF generator")
 
