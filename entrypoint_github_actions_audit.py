@@ -161,7 +161,8 @@ def discovery_run(running_config: RunningConfiguration):
 
             sqgs[file_name] = report_path
             quotas[file_name] = quota_msg
-            raw_audit_reports.append(report_path)
+            raw_audit_reports.append(os.path.join(output_directory, file_name))
+
     except Exception as e:
         logger.error(f"[!] {str(e)}")
         exit(1)
