@@ -190,6 +190,7 @@ def discovery_run(running_config: RunningConfiguration):
 
     except Exception as e:
         logger.error(f"[!] {str(e)}")
+        exit(1)
 
 
     #
@@ -217,7 +218,7 @@ def discovery_run(running_config: RunningConfiguration):
         #
         # Show audit results
         #
-        # We se print instead of logger.info because we want to show this information in the GitHub Action output
+        # We print instead of logger.info because we want to show this information in the GitHub Action output
 
         ## Global score
         print(f"Audited '{openapi_file}'")
