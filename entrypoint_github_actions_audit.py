@@ -192,7 +192,6 @@ def discovery_run(running_config: RunningConfiguration):
         logger.error(f"[!] {str(e)}")
         exit(1)
 
-
     #
     # Convert to SARIF
     #

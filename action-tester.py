@@ -27,14 +27,18 @@ def monkey_patched():
     xliic_sdk.vendors.upload_sarif = pre_patched_value
 
 
-def random_string(length: int = 10) -> str:
+def random_string(length: int = 10, prefix: str = "42c_test") -> str:
     """
     Generate a random string of given length
 
     :param length: Length of the string to generate
+    :param prefix: Prefix of the string to generate
+
     :return: Random string
     """
-    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
+    text = "".join(random.choices(string.ascii_letters + string.digits, k=length))
+
+    return f"{prefix}_{text}"
 
 
 def main():
@@ -84,6 +88,11 @@ def main():
                 os.environ[env_name] = env_value()
             else:
                 os.environ[env_name] = str(env_value)
+
+    #
+    # Set Dev Environment Variables
+    #
+    os.environ['42C_DEV_TESTING'] = 'true'
 
     # Load GitHub action Python script file
     with monkey_patched():
