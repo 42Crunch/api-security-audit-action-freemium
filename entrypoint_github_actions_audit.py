@@ -148,7 +148,7 @@ def discovery_run(running_config: RunningConfiguration):
         output_directory = running_config.audit_reports_dir
 
     else:
-        output_directory = os.path.join(running_config.input_openapi_path, uuid.uuid4().hex)
+        output_directory = os.getcwd()
 
     # Show, only in debug, audit parameters
     logger.debug(f"Running audit with the following parameters:")
