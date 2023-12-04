@@ -27,7 +27,7 @@ def monkey_patched():
     xliic_sdk.vendors.upload_sarif = pre_patched_value
 
 
-def random_string(length: int = 10, prefix: str = "42c_test") -> str:
+def random_string(length: int = 10, prefix: str = "42crunch_") -> str:
     """
     Generate a random string of given length
 
@@ -38,7 +38,7 @@ def random_string(length: int = 10, prefix: str = "42c_test") -> str:
     """
     text = "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
-    return f"{prefix}_{text}"
+    return f"{prefix}{text}"
 
 
 def main():
