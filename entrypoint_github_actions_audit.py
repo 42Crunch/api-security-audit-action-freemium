@@ -118,7 +118,7 @@ RunningConfiguration:
             self.input_openapi_path = os.getcwd()
 
 
-def fix_path(path: str, prefix: str):
+def fix_path(path: str, prefix: str, running_config: RunningConfiguration):
     """
     Fix path removing prefix from it if it exists
 
@@ -127,6 +127,11 @@ def fix_path(path: str, prefix: str):
 
     :return: Fixed path
     """
+
+    # If user specified an output directory, we don't need to fix the path
+    if running_config.audit_reports_dir:
+        return path
+
     found = path.find(prefix)
 
     if found != -1:
@@ -180,8 +185,8 @@ def discovery_run(running_config: RunningConfiguration):
                 audit_config=execution_config
         ):
             # Remove prefix from report path and report metadata until output directory
-            fixed_report_path = fix_path(report_path, output_directory)
-            fixed_report_metadata = fix_path(report_metadata, output_directory)
+            fixed_report_path = fix_path(report_path, output_directory, running_config)
+            fixed_report_metadata = fix_path(report_metadata, output_directory, running_config)
 
             sqgs[fixed_report_path] = sqg
             quotas[fixed_report_path] = quota_msg
