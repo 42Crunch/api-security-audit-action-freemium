@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import uuid
 import logging
 
 from dataclasses import dataclass
@@ -9,11 +8,11 @@ from dataclasses import dataclass
 from xliic_sdk.helpers import ExecutionError
 from xliic_sdk.audit import load_metadata_file
 from xliic_sdk.audit.report import AuditReport
-from xliic_cli.audit.reports.pdf.convert_to_pdf import create_html_report, RunningConfig as PDFRunningConfig
 from xliic_cli.audit.reports.sarif.merge_sarif.app import merge_sarif_files
+from xliic_cli.freemium.audit import run_audit_locally, AuditExecutionConfig
 from xliic_cli.audit.reports.sarif.convert_to_sarif.app import convert_to_sarif
-from xliic_cli.audit.run.local_run import run_audit_locally, AuditExecutionConfig
 from xliic_sdk.vendors import github_running_configuration, display_header, upload_sarif
+from xliic_cli.audit.reports.pdf.convert_to_pdf import create_html_report, RunningConfig as PDFRunningConfig
 
 logger = logging.getLogger("42crunch-audit")
 
@@ -121,7 +120,7 @@ RunningConfiguration:
 
 def fix_path(path: str, prefix: str):
     """
-    Fix paths
+    Fix path removing prefix from it if it exists
 
     :param path: Path to fix
     :param prefix: Prefix to remove
@@ -131,7 +130,7 @@ def fix_path(path: str, prefix: str):
     found = path.find(prefix)
 
     if found != -1:
-        p = path[found:]
+        p = path[found + len(prefix):]
 
         if p.startswith("/"):
             return p[1:]
@@ -320,6 +319,23 @@ def discovery_run(running_config: RunningConfiguration):
         if sqg.has_to_fail(running_config.enforce):
             print(f"\n[!] The API failed the security quality gate 'Default Audit SQG'\n")
             exit(1)
+
+    #
+    # Clean up?
+    #
+
+    ## If user didn't specify an output directory, we clean up the audit reports
+    if not running_config.audit_reports_dir:
+        for report, metadata in reports.items():
+            try:
+                os.remove(report)
+            except FileNotFoundError:
+                ...
+
+            try:
+                os.remove(metadata)
+            except FileNotFoundError:
+                ...
 
 
 def main():
