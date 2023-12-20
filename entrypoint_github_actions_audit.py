@@ -299,20 +299,26 @@ def discovery_run(running_config: RunningConfiguration):
     # Make PDF report
     #
     if running_config.export_as_pdf:
-        logger.debug(f"Generating PDF report '{running_config.export_as_pdf}'")
 
-        config = PDFRunningConfig(
-            collection_id=None,
-            api_id=None,
-            report_files=list(reports.keys()),
-            output_file=running_config.export_as_pdf,
-            abort_on_error=False,
-            client_email=None,
-            severity="low",
-            source="GitHub Actions"
-        )
+        if not reports:
+            logger.info("Can't generate PDF report because no audit reports were generated")
 
-        create_html_report(config)
+        else:
+
+            logger.debug(f"Generating PDF report '{running_config.export_as_pdf}'")
+
+            config = PDFRunningConfig(
+                collection_id=None,
+                api_id=None,
+                report_files=list(reports.keys()),
+                output_file=running_config.export_as_pdf,
+                abort_on_error=False,
+                client_email=None,
+                severity="low",
+                source="GitHub Actions"
+            )
+
+            create_html_report(config)
 
     #
     # Check if pipeline should fail
