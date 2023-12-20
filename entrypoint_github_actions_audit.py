@@ -168,9 +168,7 @@ def discovery_run(running_config: RunningConfiguration):
         enrich=running_config.data_enrich,
         github_org=running_config.github_organization,
         github_user=running_config.github_repository_owner,
-        log_level=running_config.log_level,
-        enrich_mode=running_config.data_enrich
-
+        log_level=running_config.log_level
     )
 
     sqgs = {}
