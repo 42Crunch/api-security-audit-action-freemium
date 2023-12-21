@@ -5,7 +5,7 @@ import logging
 
 from dataclasses import dataclass
 
-from xliic_sdk.helpers import ExecutionError
+from xliic_sdk.helpers import ExecutionError, QuotaExceededError
 from xliic_sdk.audit import load_metadata_file
 from xliic_sdk.audit.report import AuditReport
 from xliic_cli.audit.reports.sarif.merge_sarif.app import merge_sarif_files
@@ -189,6 +189,12 @@ def discovery_run(running_config: RunningConfiguration):
             sqgs[fixed_report_path] = sqg
             quotas[fixed_report_path] = quota_msg
             reports[fixed_report_path] = fixed_report_metadata
+
+    except QuotaExceededError as e:
+        print()
+        print(f"{str(e)}")
+        print()
+        exit(1)
 
     except Exception as e:
         logger.error(f"[!] {str(e)}")
