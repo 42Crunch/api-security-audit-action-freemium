@@ -180,7 +180,8 @@ def discovery_run(running_config: RunningConfiguration):
                 open_api_file_or_path=running_config.input_openapi_path,
                 output_file_or_dir=output_directory,
                 include_metadata=True,
-                audit_config=execution_config
+                audit_config=execution_config,
+                force_to_json=True
         ):
             # Remove prefix from report path and report metadata until output directory
             fixed_report_path = fix_path(report_path, output_directory, running_config)
