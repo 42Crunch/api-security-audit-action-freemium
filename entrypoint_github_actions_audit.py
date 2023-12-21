@@ -5,9 +5,9 @@ import logging
 
 from dataclasses import dataclass
 
-from xliic_sdk.helpers import ExecutionError, QuotaExceededError
 from xliic_sdk.audit import load_metadata_file
 from xliic_sdk.audit.report import AuditReport
+from xliic_sdk.helpers import ExecutionError, QuotaExceededError
 from xliic_cli.audit.reports.sarif.merge_sarif.app import merge_sarif_files
 from xliic_cli.freemium.audit import run_audit_locally, AuditExecutionConfig
 from xliic_cli.audit.reports.sarif.convert_to_sarif.app import convert_to_sarif
@@ -192,7 +192,7 @@ def discovery_run(running_config: RunningConfiguration):
 
     except QuotaExceededError as e:
         print()
-        print(f"{str(e)}")
+        print(str(e))
         print()
         exit(1)
 
