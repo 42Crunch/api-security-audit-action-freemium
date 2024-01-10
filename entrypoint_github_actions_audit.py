@@ -181,7 +181,6 @@ def discovery_run(running_config: RunningConfiguration):
                 output_file_or_dir=output_directory,
                 include_metadata=True,
                 audit_config=execution_config,
-                force_to_json=True,
                 complete_check_openapi=True
         ):
             # Remove prefix from report path and report metadata until output directory
@@ -270,13 +269,11 @@ def discovery_run(running_config: RunningConfiguration):
     #
     # Merge SARIF files
     #
-    logger.debug(
-        f"Merging SARIF files is {'enabled' if running_config.sarif_report else 'disabled'}"
-    )
     if running_config.sarif_report:
         sarif_report_name = running_config.sarif_report
     else:
-        sarif_report_name = os.path.join(running_config.input_openapi_path, "audit.sarif")
+        # The report will be the same name as input sarif file, but, with "sarif" extension
+        sarif_report_name = os.path.join(output_directory, f"{os.path.basename(running_config.input_openapi_path)}.sarif")
 
     logger.debug(f"Merging SARIF files into '{sarif_report_name}'")
 
