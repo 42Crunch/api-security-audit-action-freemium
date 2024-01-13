@@ -41,8 +41,6 @@ If set to `false`, the action reports SQG failures scenarios without enforcing t
 
 Default is `false`.  
 
-
-
 ### `log-level`
 
 Sets the level of details in the action logs, one of: `FATAL`, `ERROR`, `WARN`, `INFO`, `DEBUG`. 
