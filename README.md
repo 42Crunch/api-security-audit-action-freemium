@@ -19,7 +19,7 @@ By default, this action will:
 
 ## Action inputs
 
-### `upload-to-code-scanning` (GitHub Actions only)
+### `upload-to-code-scanning`
 
 Upload the audit results in SARIF format to [Github Code Scanning](https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/about-code-scanning).  Note that the workflow must have specific permissions for this step to be successful. This assumes you have Github Advanced security enabled.
 Default is `false`.
@@ -34,11 +34,9 @@ jobs:
 ...
 ```
 
-### `enforce-sqg` 
+### `enforce-sqg`
 
-*Coming soon!*
-
-If set to `true`, the task returns a failure when security quality gates (SQG) criteria have failed.
+If set to `true`, the task returns a failure when security quality gates (SQG) criteria have failed. Security quality gates are a set of rules that define the minimum security requirements for an API. This freemium action has [default gate values]() which cannot be changed.
 If set to `false`, the action reports SQG failures scenarios without enforcing them, giving a grace period to development teams before breaking builds.
 
 Default is `false`.  
@@ -59,6 +57,15 @@ Default is `false`.
 Converts the audit raw JSON format to SARIF and saves the results into a specified file.
 If not present, the SARIF report is not generated.
 
+### `audit-reports-dir`
+
+If set, this action saves the audit reports in the specified directory, as well as metatada information relative to the audit. Reports are exported in JSON format. 
+If not present, the audit reports are not saved.
+
+### `export-as-pdf`
+
+If set, this action exports a summary of all the audit reports as a PDF file. If not present, the PDF report is not generated.
+
 ## Examples
 
 ### Single step example
@@ -72,6 +79,8 @@ A typical new step in an existing workflow would look like this:
         	upload-to-code-scanning: true
         	enforce-sqg: false
           sarif-report: 42Crunch_AuditReport_${{ github.run_id }}.SARIF
+          export-as-pdf: 42Crunch_AuditReport_${{ github.run_id }}.pdf
+          audit-reports-dir: ${{ github.workspace }}/reports
           log-level: info
 ```
 
@@ -98,12 +107,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Audit API definition for security issues
         uses: 42Crunch/api-security-audit-action-freemium@v1
         with:
           # Upload results to Github Code Scanning
-          # Set to false if you don't have Github Advanced Security.
+          # Set to false if you don't have Github Advanced Security enabled.
           upload-to-code-scanning: true
           log-level: info
           sarif-report: 42Crunch_AuditReport_${{ github.run_id }}.SARIF
@@ -130,6 +139,10 @@ The freemium version lets you fully test 42Crunch audit features. It does have u
 - Organizations on freemium service are limited to 25 audits per repository, with a maximum of three repositories per GitHub organization. The limit is reset every calendar month.
 - Only the default security quality gates (SQGs) are included.
 - Only the standard data dictionary is included.
+
+## Testing this action 
+
+If you want to easily test this action, you can fork [this project](https://github.com/42Crunch/apisecurity-tutorial). It contains several sample OpenAPI files with security issues.
 
 ## Support
 
